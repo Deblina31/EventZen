@@ -3,12 +3,12 @@ import { useNavigate } from "react-router-dom";
 
 const Sidebar = () => {
   const role = getUserRole();
-  const navigate = useNavigate(); // ✅ FIX
+  const navigate = useNavigate(); 
 
   const links = {
     USER: [
       { name: "Dashboard", path: "/user" },
-      { name: "My Bookings 🎟️", path: "/my-bookings" }, // ✅ added here
+      { name: "My Bookings", path: "/my-bookings" }, 
     ],
     VENDOR: [{ name: "Dashboard", path: "/vendor" }],
     ADMIN: [{ name: "Dashboard", path: "/admin" }],

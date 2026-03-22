@@ -111,3 +111,4 @@ D:\EventZen\Venue_Management_Module\VenueService\obj\Debug\net10.0\refint\VenueS
 D:\EventZen\Venue_Management_Module\VenueService\obj\Debug\net10.0\VenueService.pdb
 D:\EventZen\Venue_Management_Module\VenueService\obj\Debug\net10.0\VenueService.genruntimeconfig.cache
 D:\EventZen\Venue_Management_Module\VenueService\obj\Debug\net10.0\ref\VenueService.dll
+D:\EventZen\Venue_Management_Module\VenueService\obj\Debug\net10.0\VenueService.sourcelink.json

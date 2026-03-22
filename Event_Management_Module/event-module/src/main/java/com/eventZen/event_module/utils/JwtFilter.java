@@ -40,7 +40,6 @@ public class JwtFilter extends OncePerRequestFilter {
                             .map(SimpleGrantedAuthority::new)
                             .collect(Collectors.toList());
 
-                    // Use a simple Object if the Record is causing issues
                     var auth = new UsernamePasswordAuthenticationToken(username, null, authorities);
                     auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(auth);

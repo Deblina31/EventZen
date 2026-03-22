@@ -31,7 +31,6 @@ function App() {
           }
         />
 
-        {/* ✅ ADD THIS */}
         <Route
           path="/my-bookings"
           element={

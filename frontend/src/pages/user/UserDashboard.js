@@ -2,18 +2,19 @@ import { useEffect, useState } from "react";
 import Sidebar from "../../components/Sidebar";
 import { getAllEvents } from "../../services/eventService";
 import { createBooking } from "../../services/bookingService";
+import "./UserDashboard.css";
 
 const UserDashboard = () => {
+  const [events, setEvents] = useState([]);
+
   const handleBooking = async (eventId) => {
     try {
       await createBooking(eventId);
-      alert("Booking successful 🎉");
+      alert("Booking successful");
     } catch (err) {
-      console.error(err);
-      alert("Booking failed ❌");
+      alert("Booking failed");
     }
   };
-  const [events, setEvents] = useState([]);
 
   useEffect(() => {
     fetchEvents();
@@ -22,7 +23,6 @@ const UserDashboard = () => {
   const fetchEvents = async () => {
     try {
       const res = await getAllEvents();
-      console.log("EVENTS 👉", res.data);
       setEvents(res.data);
     } catch (err) {
       console.error("Error fetching events", err);
@@ -30,40 +30,35 @@ const UserDashboard = () => {
   };
 
   return (
-    <div style={{ display: "flex" }}>
+    <div className="dashboard-container">
       <Sidebar />
 
-      <div style={{ padding: "20px" }}>
-        <h2>Event Feed 🎉</h2>
+      <div className="dashboard-content">
+        <h2>Event Feed</h2>
 
         {events.length === 0 ? (
-          <p>No events found 😢</p>
+          <p className="empty-text">No events found</p>
         ) : (
-          events.map((event) => (
-            <div
-              key={event.id}
-              style={{
-                border: "1px solid #ccc",
-                margin: "12px",
-                padding: "12px",
-                borderRadius: "8px",
-                width: "300px",
-              }}
-            >
-              <h3>{event.title}</h3>
-              <p>Description: {event.description}</p>
-              <p>
-                📅{" "}
-                {event.eventDate
-                  ? new Date(event.eventDate).toLocaleString()
-                  : "No date"}
-              </p>
+          <div className="event-grid">
+            {events.map((event) => (
+              <div key={event.id} className="event-card">
+                <h3>{event.title}</h3>
+                <p className="desc">{event.description}</p>
+                <p className="date">
+                  {event.eventDate
+                    ? new Date(event.eventDate).toLocaleString()
+                    : "No date"}
+                </p>
 
-              <button onClick={() => handleBooking(event.id)}>
-                Book Now 🎟️
-              </button>
-            </div>
-          ))
+                <button
+                  className="book-btn"
+                  onClick={() => handleBooking(event.id)}
+                >
+                  Book Now
+                </button>
+              </div>
+            ))}
+          </div>
         )}
       </div>
     </div>

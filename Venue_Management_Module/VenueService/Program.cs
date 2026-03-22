@@ -1,6 +1,6 @@
 using VenueService.Data;
 using VenueService.Repositories;
-using VenueService.Services;   // 👈 VERY IMPORTANT
+using VenueService.Services; 
 using Microsoft.EntityFrameworkCore;
 
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -8,14 +8,14 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text.Json;
 using System.Text;
 
-var key = Encoding.UTF8.GetBytes("mysecretkeymysecretkeymysecretkeymysecretkey"); // ⚠️ SAME as Spring Boot
+var key = Encoding.UTF8.GetBytes("mysecretkeymysecretkeymysecretkeymysecretkey");
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReactApp",
         policy =>
         {
-            policy.WithOrigins("http://localhost:3000") // Your React Port
+            policy.WithOrigins("http://localhost:3000") 
                   .AllowAnyHeader()
                   .AllowAnyMethod();
         });
@@ -44,15 +44,11 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuerSigningKey = true,
         IssuerSigningKey = new SymmetricSecurityKey(key),
 
-        RoleClaimType = System.Security.Claims.ClaimTypes.Role,   // 👈 IMPORTANT
+        RoleClaimType = System.Security.Claims.ClaimTypes.Role, 
     NameClaimType = "sub"
     };
 });
 
-
-
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 builder.Services.AddControllers();
 
@@ -77,7 +73,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();

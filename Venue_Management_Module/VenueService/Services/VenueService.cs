@@ -44,7 +44,6 @@ namespace VenueService.Services
     if (venue == null)
         throw new Exception("Venue not found");
 
-    // 🔥 CORE LOGIC
     if (role == "VENDOR" && venue.OwnerId != userId)
     {
         throw new UnauthorizedAccessException("Not your venue");

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import "./Register.css";
 
 const Register = () => {
   const navigate = useNavigate();
@@ -19,15 +20,13 @@ const Register = () => {
   };
 
   const handleRegister = async () => {
-    // ✅ Validation
     if (!form.username || !form.email || !form.password) {
-      alert("Please fill all fields ⚠️");
+      alert("Please fill all fields");
       return;
     }
 
-    // ✅ Simple email check
     if (!form.email.includes("@")) {
-      alert("Enter a valid email ❌");
+      alert("Enter a valid email");
       return;
     }
 
@@ -39,69 +38,46 @@ const Register = () => {
         form
       );
 
-      console.log("REGISTER RESPONSE 👉", res.data);
-
       const token = res.data.token;
 
       if (!token) {
-        alert("Registration failed ❌");
+        alert("Registration failed");
         return;
       }
 
-      // ✅ Save token
       localStorage.setItem("token", token);
 
-      // ✅ Decode role
       const payload = JSON.parse(atob(token.split(".")[1]));
       const role = payload.roles[0];
 
-      // ✅ Redirect
       if (role === "USER") navigate("/user");
       if (role === "VENDOR") navigate("/vendor");
       if (role === "ADMIN") navigate("/admin");
 
     } catch (err) {
-      console.error(err);
-      alert("Registration failed ❌");
+      alert("Registration failed");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div
-      style={{
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        height: "100vh",
-        background: "#f5f5f5",
-      }}
-    >
-      <div
-        style={{
-          padding: "30px",
-          border: "1px solid #ccc",
-          borderRadius: "10px",
-          background: "#fff",
-          width: "300px",
-          textAlign: "center",
-        }}
-      >
-        <h2>Register 📝</h2>
+    <div className="register-container">
+      <div className="register-box">
+        <h2>Register</h2>
 
         <input
           name="username"
           placeholder="Username"
           onChange={handleChange}
-          style={{ width: "100%", padding: "8px", margin: "10px 0" }}
+          className="input-field"
         />
 
         <input
           name="email"
           placeholder="Email"
           onChange={handleChange}
-          style={{ width: "100%", padding: "8px", margin: "10px 0" }}
+          className="input-field"
         />
 
         <input
@@ -109,13 +85,13 @@ const Register = () => {
           type="password"
           placeholder="Password"
           onChange={handleChange}
-          style={{ width: "100%", padding: "8px", margin: "10px 0" }}
+          className="input-field"
         />
 
         <select
           name="role"
           onChange={handleChange}
-          style={{ width: "100%", padding: "8px", margin: "10px 0" }}
+          className="input-field"
         >
           <option value="USER">User</option>
           <option value="VENDOR">Vendor</option>
@@ -125,28 +101,15 @@ const Register = () => {
         <button
           onClick={handleRegister}
           disabled={loading}
-          style={{
-            width: "100%",
-            padding: "10px",
-            background: "#007bff",
-            color: "#fff",
-            border: "none",
-            borderRadius: "5px",
-            cursor: "pointer",
-          }}
+          className="register-btn"
         >
-          {loading ? "Registering..." : "Register 🚀"}
+          {loading ? "Registering..." : "Register"}
         </button>
 
-        {/* ✅ Login redirect */}
-        <p style={{ marginTop: "15px" }}>
-          Already have an account?{" "}
+        <p className="login-text">
+          Already have an account?
           <span
-            style={{
-              color: "blue",
-              cursor: "pointer",
-              textDecoration: "underline",
-            }}
+            className="login-link"
             onClick={() => navigate("/login")}
           >
             Login

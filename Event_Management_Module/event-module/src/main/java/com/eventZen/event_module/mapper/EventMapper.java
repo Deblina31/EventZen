@@ -6,7 +6,6 @@ import com.eventZen.event_module.entity.Event;
 
 public class EventMapper {
 
-    // ✅ DTO → Entity
     public static Event toEntity(EventDTO dto, Long userId) {
         return Event.builder()
                 .title(dto.getTitle())
@@ -16,7 +15,6 @@ public class EventMapper {
                 .build();
     }
 
-    // ✅ Entity → ResponseDTO
     public static EventResponseDTO toDTO(Event event) {
         return EventResponseDTO.builder()
                 .id(event.getId())
@@ -27,7 +25,6 @@ public class EventMapper {
                 .build();
     }
 
-    // ✅ Update existing entity
     public static void updateEntity(Event event, EventDTO dto) {
         event.setTitle(dto.getTitle());
         event.setDescription(dto.getDescription());

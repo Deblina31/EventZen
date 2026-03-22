@@ -11,16 +11,9 @@ app.use(cors({
 }));
 
 app.use(express.json());
-
-
-// Routes
 app.use('/bookings', bookingRoutes);
 
-
-
-// Test DB connection
-// app.js
-sequelize.sync({ alter: true })  // this will create/update tables automatically
+sequelize.sync({ alter: true }) 
   .then(() => console.log('All models synced'))
   .catch(err => console.error('DB sync error:', err));
 

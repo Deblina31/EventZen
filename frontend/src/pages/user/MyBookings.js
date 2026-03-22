@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { getMyBookings } from "../../services/bookingService";
 import { getAllEvents } from "../../services/eventService";
+import "./MyBookings.css";
 
 const MyBookings = () => {
   const [bookings, setBookings] = useState([]);
@@ -16,13 +17,11 @@ const MyBookings = () => {
 
       const events = eventRes.data;
 
-      // 🔥 Merge booking + event data
       const enriched = bookingRes.data.map((b) => {
         const event = events.find((e) => e.id === b.eventId);
         return { ...b, event };
       });
 
-      console.log("ENRICHED BOOKINGS 👉", enriched);
       setBookings(enriched);
     } catch (err) {
       console.error(err);
@@ -30,34 +29,26 @@ const MyBookings = () => {
   };
 
   return (
-    <div style={{ padding: "20px" }}>
-      <h2>My Bookings 🎟️</h2>
+    <div className="bookings-container">
+      <h2>My Bookings</h2>
 
       {bookings.length === 0 ? (
-        <p>No bookings yet 😢</p>
+        <p className="empty-text">No bookings yet</p>
       ) : (
-        bookings.map((b) => (
-          <div
-            key={b.id}
-            style={{
-              border: "1px solid #ccc",
-              margin: "12px",
-              padding: "12px",
-              borderRadius: "8px",
-              width: "300px",
-            }}
-          >
-            <h3>{b.event?.title || "Event not found"}</h3>
-            <p>{b.event?.description}</p>
+        <div className="bookings-grid">
+          {bookings.map((b) => (
+            <div key={b.id} className="booking-card">
+              <h3>{b.event?.title || "Event not found"}</h3>
+              <p className="desc">{b.event?.description}</p>
 
-            <p>
-              📅{" "}
-              {b.event?.eventDate
-                ? new Date(b.event.eventDate).toLocaleString()
-                : "No date"}
-            </p>
-          </div>
-        ))
+              <p className="date">
+                {b.event?.eventDate
+                  ? new Date(b.event.eventDate).toLocaleString()
+                  : "No date"}
+              </p>
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );

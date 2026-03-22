@@ -2,6 +2,7 @@ package eventZen.example.eventZen.config;
 
 import eventZen.example.eventZen.service.UserDetailsServiceImpl;
 import eventZen.example.eventZen.utils.JwtFilter;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -13,23 +14,18 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
+@RequiredArgsConstructor
 public class SecurityConfig {
 
     private final UserDetailsServiceImpl userDetailsServiceImpl;
 
-    public SecurityConfig(UserDetailsServiceImpl userDetailsServiceImpl) {
-        this.userDetailsServiceImpl = userDetailsServiceImpl;
-    }
-
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtFilter jwtFilter) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtFilter jwtFilter) {
         http
-                .cors(cors -> {}) // This now looks for the configuration in WebConfig
+                .cors(cors -> {})
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/public/**").permitAll()
-                        .requestMatchers("/auth/**").permitAll()
-                        // Use hasAuthority if your DB says "ADMIN" without "ROLE_" prefix
+                        .requestMatchers("/public/**", "/auth/**").permitAll()
                         .requestMatchers("/admin/**").hasAuthority("ADMIN")
                         .anyRequest().authenticated()
                 )
@@ -44,7 +40,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
+    public AuthenticationManager authenticationManager(HttpSecurity http){
         return http.getSharedObject(AuthenticationManagerBuilder.class).build();
     }
 }

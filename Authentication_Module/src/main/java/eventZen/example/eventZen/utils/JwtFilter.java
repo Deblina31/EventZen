@@ -43,11 +43,9 @@ public class JwtFilter extends OncePerRequestFilter {
                         .map(SimpleGrantedAuthority::new)
                         .collect(Collectors.toList());
 
-                // ✅ FIX: Use the 3-argument constructor (Principal, Credentials, Authorities)
-                // This automatically sets authenticated = true
                 UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
-                        username, // Principal (cannot be null)
-                        null,     // Credentials (not needed for JWT)
+                        username,
+                        null,
                         authorities
                 );
 

@@ -16,7 +16,6 @@ public class JwtUtils {
     private final Key key = Keys.hmacShaKeyFor(SECRET.getBytes());
 
     public String generateToken(String username, String role, Long userId) {
-        // Ensure roles always go in as a list
 
         if (userId == null) {
             System.out.println("CRITICAL: generateToken received a NULL userId! Forcing it to 999 for test.");
@@ -50,7 +49,6 @@ public class JwtUtils {
                 .getSubject();
     }
 
-    // ✅ FIXED: Safer extraction of ID from Claims
     public Long getUserId(String token) {
         Claims claims = Jwts.parserBuilder()
                 .setSigningKey(key).build()

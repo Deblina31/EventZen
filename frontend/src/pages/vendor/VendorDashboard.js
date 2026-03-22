@@ -1,14 +1,14 @@
 import { useEffect, useState } from "react";
 import Sidebar from "../../components/Sidebar";
 import axios from "axios";
+import "./VendorDashboard.css";
 
 const VendorDashboard = () => {
   const [venues, setVenues] = useState([]);
   const [loading, setLoading] = useState(false);
   const [newVenue, setNewVenue] = useState({ name: "", location: "" });
-  const token = localStorage.getItem("token"); // JWT token
+  const token = localStorage.getItem("token");
 
-  // Fetch vendor's venues
   const fetchVenues = async () => {
     try {
       setLoading(true);
@@ -24,9 +24,9 @@ const VendorDashboard = () => {
   };
 
   useEffect(() => {
-  fetchVenues();
-}, [fetchVenues]); // now React knows this effect depends on fetchVenues
-  // Add new venue
+    fetchVenues();
+  }, []);
+
   const addVenue = async () => {
     try {
       await axios.post(
@@ -41,7 +41,6 @@ const VendorDashboard = () => {
     }
   };
 
-  // Delete venue
   const deleteVenue = async (id) => {
     try {
       await axios.delete(`http://localhost:5193/venues/${id}`, {
@@ -54,36 +53,63 @@ const VendorDashboard = () => {
   };
 
   return (
-    <div style={{ display: "flex" }}>
+    <div className="vendor-container">
       <Sidebar />
-      <div style={{ padding: "20px", flex: 1 }}>
-        <h2>Vendor Dashboard 🏢</h2>
-        {loading && <p>Loading venues...</p>}
+      <div className="vendor-content">
+        <h2>Vendor Dashboard</h2>
+
+        {loading && <p className="loading-text">Loading venues...</p>}
 
         <h3>Your Venues</h3>
-        {venues.length === 0 && <p>No venues added yet.</p>}
-        {venues.map((v) => (
-          <div key={v.id} style={{ marginBottom: "10px", border: "1px solid #ccc", padding: "10px", borderRadius: "5px" }}>
-            <strong>{v.name}</strong> – {v.location}
-            <button style={{ marginLeft: "10px" }} onClick={() => deleteVenue(v.id)}>Delete</button>
+
+        {venues.length === 0 ? (
+          <p className="empty-text">No venues added yet</p>
+        ) : (
+          <div className="venue-list">
+            {venues.map((v) => (
+              <div key={v.id} className="venue-card">
+                <div>
+                  <strong>{v.name}</strong>
+                  <p className="location">{v.location}</p>
+                </div>
+                <button
+                  className="delete-btn"
+                  onClick={() => deleteVenue(v.id)}
+                >
+                  Delete
+                </button>
+              </div>
+            ))}
           </div>
-        ))}
+        )}
 
         <h3>Add New Venue</h3>
-        <input
-          type="text"
-          placeholder="Venue Name"
-          value={newVenue.name}
-          onChange={(e) => setNewVenue({ ...newVenue, name: e.target.value })}
-        />
-        <input
-          type="text"
-          placeholder="Location"
-          value={newVenue.location}
-          onChange={(e) => setNewVenue({ ...newVenue, location: e.target.value })}
-          style={{ marginLeft: "10px" }}
-        />
-        <button onClick={addVenue} style={{ marginLeft: "10px" }}>Add Venue</button>
+
+        <div className="form-row">
+          <input
+            type="text"
+            placeholder="Venue Name"
+            value={newVenue.name}
+            onChange={(e) =>
+              setNewVenue({ ...newVenue, name: e.target.value })
+            }
+            className="input-field"
+          />
+
+          <input
+            type="text"
+            placeholder="Location"
+            value={newVenue.location}
+            onChange={(e) =>
+              setNewVenue({ ...newVenue, location: e.target.value })
+            }
+            className="input-field"
+          />
+
+          <button className="add-btn" onClick={addVenue}>
+            Add Venue
+          </button>
+        </div>
       </div>
     </div>
   );
