@@ -10,7 +10,9 @@ const Sidebar = () => {
       { name: "Dashboard", path: "/user" },
       { name: "My Bookings", path: "/my-bookings" }, 
     ],
-    VENDOR: [{ name: "Dashboard", path: "/vendor" }],
+    VENDOR: [{ name: "Dashboard", path: "/vendor" },
+              { name: "My Venues", path: "/vendor/my-venues" }
+    ],
     ADMIN: [{ name: "Dashboard", path: "/admin" }],
   };
 

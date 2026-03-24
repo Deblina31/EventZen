@@ -1,6 +1,6 @@
+using Microsoft.EntityFrameworkCore;
 using VenueService.Data;
 using VenueService.Models;
-using Microsoft.EntityFrameworkCore;
 
 namespace VenueService.Repositories
 {
@@ -23,6 +23,13 @@ namespace VenueService.Repositories
             return await _context.Venues.FindAsync(id);
         }
 
+        public async Task<List<Venue>> GetByVendor(int userId)
+        {
+            return await _context.Venues
+                .Where(v => v.OwnerId == userId)
+                .ToListAsync();
+        }
+
         public async Task Add(Venue venue)
         {
             await _context.Venues.AddAsync(venue);
@@ -30,9 +37,11 @@ namespace VenueService.Repositories
 
         public async Task Delete(int id)
         {
-            var venue = await GetById(id);
+            var venue = await _context.Venues.FindAsync(id);
             if (venue != null)
+            {
                 _context.Venues.Remove(venue);
+            }
         }
 
         public async Task Save()

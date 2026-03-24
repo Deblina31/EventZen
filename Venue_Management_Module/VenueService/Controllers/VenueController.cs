@@ -31,6 +31,14 @@ namespace VenueService.Controllers
             return Ok(await _service.GetById(id));
         }
 
+        [HttpGet("my")]
+        [Authorize(Roles = "VENDOR")]
+        public async Task<IActionResult> GetMyVenues()
+        {
+            var userId = int.Parse(User.FindFirst("userId")?.Value);
+            return Ok(await _service.GetByVendor(userId));
+        }
+
 
         [HttpPost]
         [Authorize(Roles = "VENDOR,ADMIN")]

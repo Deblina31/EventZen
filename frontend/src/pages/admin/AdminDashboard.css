@@ -108,7 +108,7 @@ h3 {
   transform: scale(0.95);
 }
 p {
-  color: #777;
+  color: #fffdfd;
 }
 @media (max-width: 768px) {
   .card-container {

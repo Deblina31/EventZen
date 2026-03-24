@@ -41,17 +41,6 @@ const VendorDashboard = () => {
     }
   };
 
-  const deleteVenue = async (id) => {
-    try {
-      await axios.delete(`http://localhost:5193/venues/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      fetchVenues();
-    } catch (err) {
-      console.error("Delete venue error", err);
-    }
-  };
-
   return (
     <div className="vendor-container">
       <Sidebar />
@@ -73,11 +62,11 @@ const VendorDashboard = () => {
                   <p className="location">{v.location}</p>
                 </div>
                 <button
-                  className="delete-btn"
-                  onClick={() => deleteVenue(v.id)}
-                >
-                  Delete
-                </button>
+  className="edit-btn"
+  onClick={() => window.location.href = `/vendor/edit/${v.id}`}
+>
+  Edit
+</button>
               </div>
             ))}
           </div>
