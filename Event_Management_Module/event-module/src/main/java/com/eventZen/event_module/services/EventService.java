@@ -30,7 +30,7 @@ public class EventService {
         if (userId == null) {
             throw new IllegalArgumentException("User ID cannot be null");
         }
-        // Fetch once, map once.
+
         List<Event> events = eventRepo.findByUserId(userId);
         return events.stream()
                 .map(EventMapper::toDTO)
@@ -74,7 +74,6 @@ public class EventService {
         Event event = eventRepo.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Event not found"));
 
-        // Final Auth Check: Admin or Owner
         if (isAdmin || (userId != null && event.getUserId().equals(userId))) {
             eventRepo.delete(event);
             System.out.println("Success: Event " + id + " deleted by " + (isAdmin ? "Admin" : "Owner"));

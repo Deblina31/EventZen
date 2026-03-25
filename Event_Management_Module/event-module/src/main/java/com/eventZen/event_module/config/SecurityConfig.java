@@ -21,37 +21,23 @@ import java.util.List;
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity // Allows @PreAuthorize to work
+@EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
 
     private final JwtFilter jwtFilter;
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http) {
         http
-                // 1. Enable CORS using the bean defined below
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-
-                // 2. Disable CSRF (Required for JWT/Stateless APIs)
                 .csrf(csrf -> csrf.disable())
-
-                // 3. Set Session to Stateless (No JSESSIONID cookies)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-
-                // 4. Set Permissions
                 .authorizeHttpRequests(auth -> auth
-                        // Allow all OPTIONS requests (CORS Preflight)
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-
-                        // Secure all Event endpoints - requires a valid JWT
                         .requestMatchers("/events", "/events/**").authenticated()
-
-                        // Allow any other utility endpoints (like health checks)
                         .anyRequest().permitAll()
                 )
-
-                // 5. Add our Custom JWT Filter before the standard Auth filter
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
@@ -59,21 +45,12 @@ public class SecurityConfig {
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
+
         CorsConfiguration configuration = new CorsConfiguration();
-
-        // Allow your React Frontend
         configuration.setAllowedOrigins(List.of("http://localhost:3000"));
-
-        // Allow all standard REST methods
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-
-        // CRITICAL: Allow the Authorization header so the JWT can get through
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Accept", "X-Requested-With"));
-
-        // Allow sending credentials (cookies, auth headers)
         configuration.setAllowCredentials(true);
-
-        // How long the browser should cache this CORS response (3600 seconds = 1 hour)
         configuration.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

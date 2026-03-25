@@ -2,6 +2,7 @@ package eventZen.example.eventZen.config;
 
 import eventZen.example.eventZen.service.UserDetailsServiceImpl;
 import eventZen.example.eventZen.utils.JwtFilter;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,6 +14,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+@Getter
 @Configuration
 @RequiredArgsConstructor
 public class SecurityConfig {
@@ -43,4 +45,5 @@ public class SecurityConfig {
     public AuthenticationManager authenticationManager(HttpSecurity http){
         return http.getSharedObject(AuthenticationManagerBuilder.class).build();
     }
+
 }

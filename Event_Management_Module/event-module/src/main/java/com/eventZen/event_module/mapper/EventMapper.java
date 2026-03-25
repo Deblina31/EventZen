@@ -12,7 +12,7 @@ public class EventMapper {
                 .description(dto.getDescription())
                 .eventDate(dto.getEventDate())
                 .userId(userId)
-                .venueId(dto.getVenueId()) // ADD THIS: Save the venue ID from React
+                .venueId(dto.getVenueId())
                 .build();
     }
 
@@ -38,6 +38,6 @@ public class EventMapper {
         event.setTitle(dto.getTitle());
         event.setDescription(dto.getDescription());
         event.setEventDate(dto.getEventDate());
-        event.setVenueId(dto.getVenueId()); // ADD THIS: Allow updating the venue
+        event.setVenueId(dto.getVenueId());
     }
 }
