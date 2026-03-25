@@ -13,4 +13,6 @@ public class EventDTO {
     private String title;
     private String description;
     private LocalDateTime eventDate;
+
+    private Long venueId;
 }

@@ -15,6 +15,6 @@ public class EventResponseDTO {
     private String description;
     private LocalDateTime eventDate;
 
-
+    private Long venueId;
     private Long userId;
 }

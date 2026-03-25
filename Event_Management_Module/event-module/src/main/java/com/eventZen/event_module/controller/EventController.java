@@ -14,6 +14,7 @@ import com.eventZen.event_module.services.EventService;
 
 @RestController
 @RequestMapping("/events")
+@CrossOrigin(origins = "http://localhost:3000")
 @RequiredArgsConstructor
 public class EventController {
 

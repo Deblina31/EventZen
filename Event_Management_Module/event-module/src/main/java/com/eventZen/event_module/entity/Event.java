@@ -24,5 +24,7 @@ public class Event {
     private LocalDateTime eventDate;
 
     private Long userId;
+    @Column(name = "venueId")
+    private Long venueId;
 
 }
