@@ -2,22 +2,18 @@ import { useEffect, useState } from "react";
 import Sidebar from "../../components/Sidebar";
 import { getAllEvents } from "../../services/eventService";
 import { createBooking } from "../../services/bookingService";
+import axios from "axios"; // Import axios for the .NET call
 import "./UserDashboard.css";
 
 const UserDashboard = () => {
   const [events, setEvents] = useState([]);
+  const [venues, setVenues] = useState([]); // State to hold .NET venue data
 
-  const handleBooking = async (eventId) => {
-    try {
-      await createBooking(eventId);
-      alert("Booking successful");
-    } catch (err) {
-      alert("Booking failed");
-    }
-  };
+  const token = localStorage.getItem("token");
 
   useEffect(() => {
     fetchEvents();
+    fetchVenues(); // Fetch venues on component mount
   }, []);
 
   const fetchEvents = async () => {
@@ -26,6 +22,28 @@ const UserDashboard = () => {
       setEvents(res.data);
     } catch (err) {
       console.error("Error fetching events", err);
+    }
+  };
+
+  // Fetch from your .NET Venue Service
+  const fetchVenues = async () => {
+    try {
+      const res = await axios.get("http://localhost:5193/venues", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = res.data.venues || res.data;
+      setVenues(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error("Error fetching venues", err);
+    }
+  };
+
+  const handleBooking = async (eventId) => {
+    try {
+      await createBooking(eventId);
+      alert("Booking successful");
+    } catch (err) {
+      alert("Booking failed");
     }
   };
 
@@ -40,24 +58,40 @@ const UserDashboard = () => {
           <p className="empty-text">No events found</p>
         ) : (
           <div className="event-grid">
-            {events.map((event) => (
-              <div key={event.id} className="event-card">
-                <h3>{event.title}</h3>
-                <p className="desc">{event.description}</p>
-                <p className="date">
-                  {event.eventDate
-                    ? new Date(event.eventDate).toLocaleString()
-                    : "No date"}
-                </p>
+            {events.map((event) => {
+              // --- MATCHING LOGIC ---
+              const actualVenueId = event.venueId || event.venue_id;
+              const matchedVenue = venues.find(
+                (v) => (v.id || v.Id)?.toString() === actualVenueId?.toString()
+              );
 
-                <button
-                  className="book-btn"
-                  onClick={() => handleBooking(event.id)}
-                >
-                  Book Now
-                </button>
-              </div>
-            ))}
+              return (
+                <div key={event.id} className="event-card">
+                  <h3>{event.title}</h3>
+                  <p className="desc">{event.description}</p>
+                  
+                  {/* VENUE DISPLAY */}
+                  <p className="venue-info">
+                    📍 {matchedVenue 
+                        ? `${matchedVenue.name} — ${matchedVenue.location}` 
+                        : "Location TBD"}
+                  </p>
+
+                  <p className="date">
+                    📅 {event.eventDate
+                      ? new Date(event.eventDate).toLocaleString()
+                      : "No date"}
+                  </p>
+
+                  <button
+                    className="book-btn"
+                    onClick={() => handleBooking(event.id)}
+                  >
+                    Book Now
+                  </button>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>

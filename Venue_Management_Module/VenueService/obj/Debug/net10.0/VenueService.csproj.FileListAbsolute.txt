@@ -112,3 +112,4 @@ D:\EventZen\Venue_Management_Module\VenueService\obj\Debug\net10.0\VenueService.
 D:\EventZen\Venue_Management_Module\VenueService\obj\Debug\net10.0\VenueService.genruntimeconfig.cache
 D:\EventZen\Venue_Management_Module\VenueService\obj\Debug\net10.0\ref\VenueService.dll
 D:\EventZen\Venue_Management_Module\VenueService\obj\Debug\net10.0\VenueService.sourcelink.json
+D:\EventZen\Venue_Management_Module\VenueService\bin\Debug\net10.0\RabbitMQ.Client.dll

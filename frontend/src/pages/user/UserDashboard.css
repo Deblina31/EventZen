@@ -79,3 +79,10 @@ body {
 .book-btn:active {
   transform: scale(0.97);
 }
+
+.venue-info {
+  font-weight: 600;
+  color: #007bff; /* A nice blue to distinguish it from the description */
+  margin: 8px 0;
+  font-size: 0.95rem;
+}

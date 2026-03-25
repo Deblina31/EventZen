@@ -5,6 +5,7 @@ const cors = require('cors');
 const bookingRoutes = require('./routes/bookingRoutes');
 const sequelize = require('./config/db');
 require('dotenv').config();
+require('./services/eventConsumer');
 
 app.use(cors({
   origin: "http://localhost:3000",
