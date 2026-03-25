@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
+import "./EditVenue.css"; 
 
 const EditVenue = () => {
   const { id } = useParams();
@@ -9,17 +10,21 @@ const EditVenue = () => {
   const [venue, setVenue] = useState({
     name: "",
     location: "",
+    capacity: 0,
   });
 
   const token = localStorage.getItem("token");
 
-  // 🔹 Fetch venue by ID
   const fetchVenue = async () => {
     try {
       const res = await axios.get(`http://localhost:5193/venues/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setVenue(res.data);
+      setVenue({
+        name: res.data.name || res.data.Name || "",
+        location: res.data.location || res.data.Location || "",
+        capacity: res.data.capacity || res.data.Capacity || 0,
+      });
     } catch (err) {
       console.error("Error fetching venue", err);
     }
@@ -27,55 +32,63 @@ const EditVenue = () => {
 
   useEffect(() => {
     fetchVenue();
-  }, []);
+  }, [id]);
 
-  // 🔹 Update venue
   const handleUpdate = async () => {
     try {
-      await axios.put(
-        `http://localhost:5193/venues/${id}`,
-        venue,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      await axios.put(`http://localhost:5193/venues/${id}`, venue, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
       alert("Venue updated successfully");
-      navigate("/vendor/dashboard"); // go back
+      navigate("/vendor/my-venues");
     } catch (err) {
       console.error("Update error", err);
+      alert("Failed to update venue");
     }
   };
 
   return (
-    <div style={{ padding: "20px" }}>
-      <h2>Edit Venue</h2>
+    <div className="edit-venue-container">
+      <div className="edit-card">
+        <h2>Edit Venue Details</h2>
+        <p className="subtitle">Update your venue information below</p>
 
-      <input
-        type="text"
-        value={venue.name}
-        onChange={(e) =>
-          setVenue({ ...venue, name: e.target.value })
-        }
-        placeholder="Venue Name"
-      />
+        <div className="form-group">
+          <label>Venue Name</label>
+          <input
+            type="text"
+            value={venue.name}
+            onChange={(e) => setVenue({ ...venue, name: e.target.value })}
+            placeholder="Enter venue name"
+          />
+        </div>
 
-      <br /><br />
+        <div className="form-group">
+          <label>Location</label>
+          <input
+            type="text"
+            value={venue.location}
+            onChange={(e) => setVenue({ ...venue, location: e.target.value })}
+            placeholder="Enter location"
+          />
+        </div>
 
-      <input
-        type="text"
-        value={venue.location}
-        onChange={(e) =>
-          setVenue({ ...venue, location: e.target.value })
-        }
-        placeholder="Location"
-      />
+        <div className="form-group">
+          <label>Capacity (People)</label>
+          <input
+            type="number"
+            value={venue.capacity}
+            onChange={(e) => setVenue({ ...venue, capacity: parseInt(e.target.value) || 0 })}
+            placeholder="Max capacity"
+          />
+        </div>
 
-      <br /><br />
-
-      <button onClick={handleUpdate}>
-        Update
-      </button>
+        <div className="edit-actions">
+          <button className="cancel-btn" onClick={() => navigate(-1)}>Cancel</button>
+          <button className="update-btn" onClick={handleUpdate}>Save Changes</button>
+        </div>
+      </div>
     </div>
   );
 };

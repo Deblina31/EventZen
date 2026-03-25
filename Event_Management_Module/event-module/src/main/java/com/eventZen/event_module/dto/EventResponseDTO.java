@@ -15,6 +15,10 @@ public class EventResponseDTO {
     private String description;
     private LocalDateTime eventDate;
 
+    private Double totalBudget;
+    private Double currentExpenses;
+    private Double remainingBudget;
+
     private Long venueId;
     private Long userId;
 }

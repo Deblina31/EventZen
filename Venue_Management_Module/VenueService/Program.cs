@@ -65,7 +65,6 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddScoped<IVenueRepository, VenueRepository>();
 builder.Services.AddScoped<VenueServiceImpl>();
 
-
 var app = builder.Build();
 
 app.UseCors("AllowReactApp");
@@ -77,8 +76,6 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
-
-//app.UseHttpsRedirection();
 
 var summaries = new[]
 {

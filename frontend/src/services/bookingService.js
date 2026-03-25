@@ -1,7 +1,6 @@
-// src/services/bookingService.js
 import axios from "axios";
 
-const BASE_URL = "http://localhost:3001/bookings"; // adjust if needed
+const BASE_URL = "http://localhost:3001/bookings";
 
 export const getMyBookings = async () => {
   const token = localStorage.getItem("token");

@@ -15,4 +15,5 @@ public class EventDTO {
     private LocalDateTime eventDate;
 
     private Long venueId;
+    private Double totalBudget;
 }

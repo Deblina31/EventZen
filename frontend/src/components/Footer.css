@@ -6,10 +6,9 @@
   color: #ecf0f1;
   font-size: 12px;
   position: relative;
-  margin-top: auto; /* Pushes it to the bottom of the flex container */
+  margin-top: auto; 
 }
 
-/* Subtle hover effect for the text instead of the whole bar */
 .footer p:hover {
   color: #3498db;
   transition: 0.3s;

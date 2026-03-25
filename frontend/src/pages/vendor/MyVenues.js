@@ -1,9 +1,11 @@
-
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import "./MyVenues.css"; 
 
 const MyVenues = () => {
   const [venues, setVenues] = useState([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchMyVenues();
@@ -11,34 +13,41 @@ const MyVenues = () => {
 
   const fetchMyVenues = async () => {
     const token = localStorage.getItem("token");
-
-    const res = await axios.get("http://localhost:5193/venues/my", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    setVenues(res.data);
+    try {
+      const res = await axios.get("http://localhost:5193/venues/my", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setVenues(res.data);
+    } catch (err) {
+      console.error("Error fetching venues", err);
+    }
   };
 
   return (
-    <div>
-      <h2>My Venues</h2>
+    <div className="venues-container">
+      <header className="venues-header">
+        <h2>My Venues</h2>
+      </header>
 
-      {venues.map((v) => (
-        <div key={v.id} style={{ border: "1px solid gray", margin: "10px", padding: "10px" }}>
-          <h3>{v.name}</h3>
-          <p>{v.location}</p>
-
-          <button onClick={() => window.location.href = `/vendor/edit/${v.id}`}>
-            Edit
-          </button>
-
-          <button onClick={() => window.location.href = `/vendor/view/${v.id}`}>
-            View Details
-          </button>
-        </div>
-      ))}
+      <div className="venues-grid">
+        {venues.map((v) => (
+          <div key={v.id} className="venue-card">
+            <div className="venue-info">
+              <h3>{v.name}</h3>
+              <p className="location">Location:- {v.location}</p>
+            </div>
+            
+            <div className="venue-actions">
+              <button className="view-btn" onClick={() => navigate(`/vendor/view/${v.id}`)}>
+                View Details
+              </button>
+              <button className="edit-btn" onClick={() => navigate(`/vendor/edit/${v.id}`)}>
+                Edit
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 };

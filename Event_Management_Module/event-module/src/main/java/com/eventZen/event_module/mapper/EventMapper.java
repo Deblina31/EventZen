@@ -17,13 +17,20 @@ public class EventMapper {
     }
 
     public static EventResponseDTO toDTO(Event event) {
+        double budget = event.getTotalBudget() != null ? event.getTotalBudget() : 0.0;
+        double expenses = event.getCurrentExpenses() != null ? event.getCurrentExpenses() : 0.0;
+
+
         return EventResponseDTO.builder()
                 .id(event.getId())
                 .title(event.getTitle())
                 .description(event.getDescription())
                 .eventDate(event.getEventDate())
                 .userId(event.getUserId())
-                .venueId(event.getVenueId()) // ADD THIS: Send the venue ID back to React
+                .venueId(event.getVenueId())
+                .totalBudget(budget)
+                .currentExpenses(expenses)
+                .remainingBudget(budget - expenses)
                 .build();
     }
 

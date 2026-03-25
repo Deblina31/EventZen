@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import Sidebar from "../../components/Sidebar";
 import axios from "axios";
 import "./VendorDashboard.css";
 
@@ -8,7 +7,12 @@ const VendorDashboard = () => {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(false);
   const [newVenue, setNewVenue] = useState({ name: "", location: "" });
-  const [newEvent, setNewEvent] = useState({ title: "", venueId: "" });
+  
+  const [newEvent, setNewEvent] = useState({ 
+    title: "", 
+    venueId: "", 
+    totalBudget: "" 
+  });
 
   const token = localStorage.getItem("token");
 
@@ -56,15 +60,14 @@ const VendorDashboard = () => {
   };
 
   const addEvent = async () => {
-    if (!newEvent.venueId) return alert("Please select a venue!");
+    if (!newEvent.venueId || !newEvent.totalBudget) {
+      return alert("Please fill in the title, venue, and budget!");
+    }
     try {
-      // LOG: Check what exactly we are sending
-      console.log("Adding event with data:", newEvent);
-      
       await axios.post("http://localhost:8081/events", newEvent, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setNewEvent({ title: "", venueId: "" });
+      setNewEvent({ title: "", venueId: "", totalBudget: "" });
       fetchEvents();
     } catch (err) {
       console.error("Add event error", err);
@@ -73,16 +76,14 @@ const VendorDashboard = () => {
 
   return (
     <div className="vendor-container">
-      <Sidebar />
       <div className="vendor-content">
         <h2>Vendor Dashboard</h2>
 
         {loading && <p className="loading-text">Loading Data...</p>}
 
         <div className="dashboard-grid">
-          {/* VENUES SECTION (.NET) */}
           <section className="dashboard-section">
-            <h3>Your Venues (.NET)</h3>
+            <h3>Your Venues</h3>
             <div className="venue-list">
               {venues.length === 0 ? (
                 <p className="empty-text">No venues added yet</p>
@@ -109,34 +110,41 @@ const VendorDashboard = () => {
             </div>
           </section>
 
-          {/* EVENTS SECTION (Spring Boot) */}
+         
           <section className="dashboard-section">
-            <h3>Your Events (Spring Boot)</h3>
+            <h3>Your Events</h3>
             <div className="event-list">
               {events.length === 0 ? (
                 <p className="empty-text">No events added yet</p>
               ) : (
                 events.map((e) => {
-                  // SMART FINDER: Check all possible key names (venueId, venue_id, venueID)
                   const actualVenueId = e.venueId || e.venue_id || e.venueID;
-
-                  const matchedVenue = venues.find((v) => {
-                    const vId = (v.id || v.Id)?.toString();
-                    const eVenueId = actualVenueId?.toString();
-                    return vId && eVenueId && vId === eVenueId;
-                  });
+                  const matchedVenue = venues.find((v) => (v.id || v.Id)?.toString() === actualVenueId?.toString());
 
                   return (
                     <div key={e.id} className="event-card">
                       <div className="event-info">
                         <strong>{e.title}</strong>
                         <p className="location-subtext">
-                          {matchedVenue 
-                            ? (matchedVenue.location || matchedVenue.Location) 
-                            : actualVenueId 
-                              ? `ID: ${actualVenueId} (Not Found in .NET)` 
-                              : "No Venue Linked"}
+                          {matchedVenue ? (matchedVenue.location || matchedVenue.Location) : `ID: ${actualVenueId} (Link Pending)`}
                         </p>
+                        
+                
+                        <div className="event-finances">
+                          <div className="finance-row">
+                            <span>Budget:</span>
+                            <span>Rs{e.totalBudget?.toLocaleString() || 0}</span>
+                          </div>
+                          <div className="finance-row">
+                            <span>Spent:</span>
+                            <span className="spent-text">Rs{e.currentExpenses?.toLocaleString() || 0}</span>
+                          </div>
+                          <hr />
+                          <div className={`finance-row total ${e.remainingBudget < 0 ? "negative" : ""}`}>
+                            <span>Remaining:</span>
+                            <span>Rs{e.remainingBudget?.toLocaleString() || 0}</span>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   );
@@ -146,7 +154,14 @@ const VendorDashboard = () => {
 
             <div className="add-form">
               <h4>Create Event</h4>
-              <input type="text" placeholder="Event Title" value={newEvent.title} onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })} className="input-field" />
+              <input 
+                type="text" 
+                placeholder="Event Title" 
+                value={newEvent.title} 
+                onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })} 
+                className="input-field" 
+              />
+              
               <select 
                 className="input-field" 
                 value={newEvent.venueId} 
@@ -159,6 +174,15 @@ const VendorDashboard = () => {
                   </option>
                 ))}
               </select>
+
+              <input 
+                type="number" 
+                placeholder="Total Budget (INR)" 
+                value={newEvent.totalBudget} 
+                onChange={(e) => setNewEvent({ ...newEvent, totalBudget: e.target.value })} 
+                className="input-field" 
+              />
+
               <button className="add-btn event-btn" onClick={addEvent}>Add Event</button>
             </div>
           </section>

@@ -1,0 +1,84 @@
+.edit-venue-container {
+  display: flex;
+  justify-content: center;
+  padding: 40px 20px;
+  background-color: #f9f9fb;
+  min-height: 80vh;
+}
+
+.edit-card {
+  background: white;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  width: 100%;
+  max-width: 500px;
+}
+
+.edit-card h2 {
+  margin: 0 0 5px 0;
+  color: #333;
+}
+
+.subtitle {
+  color: #888;
+  margin-bottom: 25px;
+  font-size: 14px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label {
+  font-weight: 600;
+  margin-bottom: 8px;
+  font-size: 14px;
+  color: #555;
+}
+
+.form-group input {
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 16px;
+  transition: border 0.3s;
+}
+
+.form-group input:focus {
+  border-color: #007bff;
+  outline: none;
+}
+
+.edit-actions {
+  display: flex;
+  gap: 15px;
+  margin-top: 30px;
+}
+
+.update-btn {
+  flex: 2;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.cancel-btn {
+  flex: 1;
+  background-color: #eee;
+  color: #444;
+  border: none;
+  padding: 12px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.update-btn:hover { background-color: #0056b3; }
+.cancel-btn:hover { background-color: #ddd; }

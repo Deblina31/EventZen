@@ -98,7 +98,7 @@ const Home = () => {
           <h1 className="home-title">Welcome to EventZen</h1>
 
           <p className="home-desc">
-            Manage events, venues, and users with ease. Choose your role to continue.
+            Manage events, venues, and users with ease. Please register or Login to continue.
           </p>
 
           <div className="btn-group">

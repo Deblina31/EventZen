@@ -82,7 +82,7 @@ body {
 
 .venue-info {
   font-weight: 600;
-  color: #007bff; /* A nice blue to distinguish it from the description */
+  color: #007bff; 
   margin: 8px 0;
   font-size: 0.95rem;
 }

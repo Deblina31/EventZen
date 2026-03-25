@@ -23,6 +23,9 @@ public class Event {
 
     private LocalDateTime eventDate;
 
+    private Double totalBudget;
+    private Double currentExpenses;
+
     private Long userId;
     @Column(name = "venueId")
     private Long venueId;

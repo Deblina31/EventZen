@@ -1,19 +1,20 @@
 import { useEffect, useState } from "react";
-import Sidebar from "../../components/Sidebar";
 import { getAllEvents } from "../../services/eventService";
 import { createBooking } from "../../services/bookingService";
-import axios from "axios"; // Import axios for the .NET call
+
+
+import axios from "axios";
 import "./UserDashboard.css";
 
 const UserDashboard = () => {
   const [events, setEvents] = useState([]);
-  const [venues, setVenues] = useState([]); // State to hold .NET venue data
+  const [venues, setVenues] = useState([]); 
 
   const token = localStorage.getItem("token");
 
   useEffect(() => {
     fetchEvents();
-    fetchVenues(); // Fetch venues on component mount
+    fetchVenues(); 
   }, []);
 
   const fetchEvents = async () => {
@@ -25,7 +26,6 @@ const UserDashboard = () => {
     }
   };
 
-  // Fetch from your .NET Venue Service
   const fetchVenues = async () => {
     try {
       const res = await axios.get("http://localhost:5193/venues", {
@@ -49,8 +49,6 @@ const UserDashboard = () => {
 
   return (
     <div className="dashboard-container">
-      <Sidebar />
-
       <div className="dashboard-content">
         <h2>Event Feed</h2>
 
@@ -59,7 +57,6 @@ const UserDashboard = () => {
         ) : (
           <div className="event-grid">
             {events.map((event) => {
-              // --- MATCHING LOGIC ---
               const actualVenueId = event.venueId || event.venue_id;
               const matchedVenue = venues.find(
                 (v) => (v.id || v.Id)?.toString() === actualVenueId?.toString()
@@ -70,15 +67,14 @@ const UserDashboard = () => {
                   <h3>{event.title}</h3>
                   <p className="desc">{event.description}</p>
                   
-                  {/* VENUE DISPLAY */}
                   <p className="venue-info">
-                    📍 {matchedVenue 
+                    {matchedVenue 
                         ? `${matchedVenue.name} — ${matchedVenue.location}` 
                         : "Location TBD"}
                   </p>
 
                   <p className="date">
-                    📅 {event.eventDate
+                    {event.eventDate
                       ? new Date(event.eventDate).toLocaleString()
                       : "No date"}
                   </p>

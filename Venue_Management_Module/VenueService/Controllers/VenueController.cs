@@ -46,31 +46,31 @@ namespace VenueService.Controllers
         {
             var userId = int.Parse(User.FindFirst("userId")?.Value);
 
-    await _service.Add(dto, userId);
+            await _service.Add(dto, userId);
             return Ok("Venue added");
         }
 
         [HttpPut("{id}")]
         [Authorize(Roles = "VENDOR,ADMIN")]
-            public async Task<IActionResult> Update(int id, [FromBody] VenueDTO dto)
-                {
-                    try
-                        {
-                            var userId = int.Parse(User.FindFirst("userId")?.Value);
-                            var role = User.FindFirst("role")?.Value;
+        public async Task<IActionResult> Update(int id, [FromBody] VenueDTO dto)
+        {
+            try
+            {
+                var userId = int.Parse(User.FindFirst("userId")?.Value);
+                var role = User.FindFirst("role")?.Value;
 
-                            await _service.Update(id, dto, userId, role);
+                await _service.Update(id, dto, userId, role);
 
-    return Ok("Updated");
-                        }
-                    catch (Exception ex)
-                        {
-                             return NotFound(ex.Message);
-                        }
-                }
+                return Ok("Updated");
+            }
+            catch (Exception ex)
+            {
+                return NotFound(ex.Message);
+            }
+        }
 
         [HttpDelete("{id}")]
-        [Authorize(Roles = "ADMIN" )]
+        [Authorize(Roles = "ADMIN")]
         public async Task<IActionResult> Delete(int id)
         {
             await _service.Delete(id);
