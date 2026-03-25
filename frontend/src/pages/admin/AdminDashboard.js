@@ -7,149 +7,193 @@ const AdminDashboard = () => {
   const [events, setEvents] = useState([]);
   const [bookings, setBookings] = useState([]);
   const [venues, setVenues] = useState([]);
+  const [filterRole, setFilterRole] = useState("ALL");
 
-  const token = localStorage.getItem("token");
+  // Helper to get fresh headers
+  const getHeaders = () => {
+    const token = localStorage.getItem("token");
+    return { Authorization: `Bearer ${token}` };
+  };
 
   const fetchAllData = useCallback(async () => {
-    try {
-      // Fetching from all 4 microservices simultaneously
-      const [userRes, eventRes, bookingRes, venueRes] = await Promise.all([
-        axios.get("http://localhost:8080/admin/users", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        axios.get("http://localhost:8081/events", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        axios.get("http://localhost:3001/bookings", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        axios.get("http://localhost:5193/venues", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-      ]);
-
-      // Handle data nesting (e.g., .content for paginated Spring Boot responses)
-      setUsers(userRes.data.content || userRes.data || []);
-      setEvents(eventRes.data || []);
-      setBookings(bookingRes.data || []);
-      setVenues(venueRes.data || []);
-    } catch (err) {
-      console.error("Admin fetch error:", err);
+    const headers = getHeaders();
+    if (!headers.Authorization || headers.Authorization.includes("null")) {
+      console.error("No valid token found");
+      return;
     }
-  }, [token]);
 
+    const safeFetch = async (url, setter, label) => {
+      try {
+        const res = await axios.get(url, { headers });
+        console.log(`${label} Response:`, res.data);
+
+        // This line handles Spring Page objects (.content), .NET (.venues), and standard arrays
+        const rawData = res.data.content || res.data.venues || res.data;
+        const finalArray = Array.isArray(rawData) ? rawData : [];
+        
+        setter(finalArray);
+      } catch (err) {
+        console.error(`${label} Fetch Error (${err.response?.status}):`, err.response?.data || err.message);
+        setter([]);
+      }
+    };
+
+    // Fire all requests simultaneously
+    await Promise.all([
+      safeFetch("http://localhost:8080/admin/users?size=100", setUsers, "Users"),
+      safeFetch("http://localhost:8081/events", setEvents, "Events"),
+      safeFetch("http://localhost:3001/bookings", setBookings, "Bookings"),
+      safeFetch("http://localhost:5193/venues", setVenues, "Venues"),
+    ]);
+  }, []);
+
+  // CRITICAL: This was missing/not firing in your previous snippet
   useEffect(() => {
     fetchAllData();
   }, [fetchAllData]);
 
-  // Logic to match Event.venueId with Venue.id from Port 5193
-  const getVenueName = (venueId) => {
-    if (!venueId) return "No Venue ID";
-    // Use == instead of === to handle string vs number ID differences
-    const foundVenue = venues.find((v) => v.id == venueId);
-    return foundVenue ? foundVenue.name : "Loading Venue...";
+  // --- DELETE FUNCTIONS ---
+  const handleDeleteUser = async (id) => {
+    if (!window.confirm("Delete this user?")) return;
+    try {
+      await axios.delete(`http://localhost:8080/admin/users/${id}`, { headers: getHeaders() });
+      setUsers(prev => prev.filter((u) => u.id !== id));
+    } catch (err) { alert("User delete failed"); }
   };
 
-  const handleDeleteUser = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this user?")) return;
+ const handleDeleteEvent = async (id) => {
+  if (!window.confirm("Delete this event?")) return;
+  try {
+    const response = await axios.delete(`http://localhost:8081/events/${id}`, { headers: getHeaders() });
+    console.log("Delete Success:", response.data);
+    setEvents(prev => prev.filter((e) => e.id !== id));
+  } catch (err) {
+    // This will now show you exactly what the Java error was!
+    const errorMsg = err.response?.data || "Server Error";
+    console.error("Delete Failed:", errorMsg);
+    alert("Delete failed: " + (typeof errorMsg === 'object' ? JSON.stringify(errorMsg) : errorMsg));
+  }
+};
+
+  const handleDeleteVenue = async (id) => {
+    if (!window.confirm("Delete this venue?")) return;
+    const venueId = id; 
     try {
-      await axios.delete(`http://localhost:8080/admin/users/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      alert("User deleted");
-      setUsers(users.filter((u) => u.id !== id));
-    } catch (err) {
-      console.error(err);
-      alert("Delete failed!");
-    }
+      await axios.delete(`http://localhost:5193/venues/${venueId}`, { headers: getHeaders() });
+      setVenues(prev => prev.filter((v) => (v.id || v.Id) !== venueId));
+    } catch (err) { alert("Venue delete failed"); }
   };
+
+  const handleDeleteBooking = async (id) => {
+    if (!window.confirm("Cancel this booking?")) return;
+    try {
+      await axios.delete(`http://localhost:3001/bookings/${id}`, { headers: getHeaders() });
+      setBookings(prev => prev.filter((b) => b.id !== id));
+    } catch (err) { alert("Booking delete failed"); }
+  };
+
+  const filteredUsers = users.filter(u => {
+    if (filterRole === "ALL") return true;
+    return u.role === filterRole;
+  });
 
   return (
-    <div className="admin-container">
-      <div className="admin-content">
+    <div className="admin-full-wrapper">
+      <div className="admin-main-content">
+        
         <header className="admin-header">
-          <h1>Admin Management Portal</h1>
-          <p>Real-time overview of all microservices</p>
+          <div className="header-left">
+            <h1>Admin Control Center</h1>
+            <p className="subtitle">System-wide Management</p>
+          </div>
+          <button className="refresh-btn" onClick={fetchAllData}>🔄 Refresh System Data</button>
         </header>
 
-        {/* Stats Summary Grid */}
         <div className="stats-grid">
-          <div className="stat-card">
-            <h3>Total Users</h3>
-            <p className="stat-number">{users.length}</p>
-          </div>
-          <div className="stat-card">
-            <h3>Total Events</h3>
-            <p className="stat-number">{events.length}</p>
-          </div>
-          <div className="stat-card">
-            <h3>Total Bookings</h3>
-            <p className="stat-number">{bookings.length}</p>
-          </div>
+          <div className="stat-card blue"><h3>{users.length}</h3><p>Users</p></div>
+          <div className="stat-card purple"><h3>{events.length}</h3><p>Events</p></div>
+          <div className="stat-card green"><h3>{bookings.length}</h3><p>Bookings</p></div>
+          <div className="stat-card orange"><h3>{venues.length}</h3><p>Venues</p></div>
         </div>
 
-        {/* User Management Section */}
-        <section className="data-section">
-          <h2>User Management</h2>
-          <div className="list-container">
-            {users.length === 0 ? (
-              <p className="empty-text">No users found.</p>
-            ) : (
-              users.map((user) => (
-                <div key={user.id} className="data-row">
-                  <div className="info">
-                    <span className="main-id">ID: {user.id}</span>
-                    <span className="main-name">{user.username}</span>
-                  </div>
-                  <button onClick={() => handleDeleteUser(user.id)} className="btn-delete">
-                    Delete User
-                  </button>
-                </div>
-              ))
-            )}
+        <div className="management-grid">
+          
+          {/* USER TABLE */}
+          <div className="table-container">
+            <div className="table-header-flex">
+              <h3>User Management</h3>
+              <select value={filterRole} onChange={(e) => setFilterRole(e.target.value)}>
+                <option value="ALL">All Roles</option>
+                <option value="USER">Standard Users</option>
+                <option value="VENDOR">Vendors</option>
+              </select>
+            </div>
+            <table className="admin-table">
+              <thead><tr><th>Username</th><th>Role</th><th>Action</th></tr></thead>
+              <tbody>
+                {filteredUsers.map((u) => (
+                  <tr key={u.id}>
+                    <td>{u.username}</td>
+                    <td><span className={`badge ${u.role === 'VENDOR' ? 'vendor-bg' : 'user-bg'}`}>{u.role}</span></td>
+                    <td><button onClick={() => handleDeleteUser(u.id)} className="delete-btn-table">Delete</button></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-        </section>
 
-        {/* Events & Venues Section (Merged Data) */}
-        <section className="data-section">
-          <h2>Events & Venues</h2>
-          <div className="list-container">
-            {events.length === 0 ? (
-              <p className="empty-text">No events found.</p>
-            ) : (
-              events.map((event) => (
-                <div key={event.id} className="data-row border-blue">
-                  <div className="info">
-                    <span className="main-name">{event.name || event.title}</span>
-                    <span className="sub-detail">
-                      <strong>Venue:</strong> {getVenueName(event.venueId)}
-                    </span>
-                  </div>
-                  <div className="badge">Event ID: {event.id}</div>
-                </div>
-              ))
-            )}
+          {/* EVENT TABLE */}
+          <div className="table-container">
+            <h3>Event Management</h3>
+            <table className="admin-table">
+              <thead><tr><th>Title</th><th>Date</th><th>Action</th></tr></thead>
+              <tbody>
+                {events.map((e) => (
+                  <tr key={e.id}>
+                    <td>{e.title}</td>
+                    <td>{e.eventDate ? new Date(e.eventDate).toLocaleDateString() : 'N/A'}</td>
+                    <td><button onClick={() => handleDeleteEvent(e.id)} className="delete-btn-table">Delete</button></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-        </section>
 
-        {/* Booking Section */}
-        <section className="data-section">
-          <h2>Booking History</h2>
-          <div className="list-container">
-            {bookings.length === 0 ? (
-              <p className="empty-text">No bookings found.</p>
-            ) : (
-              bookings.map((booking) => (
-                <div key={booking.id} className="data-row border-green">
-                  <div className="info">
-                    <span className="main-name">Booking Ref: #{booking.id}</span>
-                    <span className="sub-detail">User ID: {booking.userId}</span>
-                  </div>
-                </div>
-              ))
-            )}
+          {/* VENUE TABLE */}
+          <div className="table-container">
+            <h3>Venue Management (.NET)</h3>
+            <table className="admin-table">
+              <thead><tr><th>Name</th><th>Location</th><th>Action</th></tr></thead>
+              <tbody>
+                {venues.map((v) => (
+                  <tr key={v.id || v.Id}>
+                    <td>{v.name || v.Name}</td>
+                    <td>{v.location || v.Location}</td>
+                    <td><button onClick={() => handleDeleteVenue(v.id || v.Id)} className="delete-btn-table">Delete</button></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-        </section>
+
+          {/* BOOKINGS TABLE */}
+          <div className="table-container">
+            <h3>Bookings Management</h3>
+            <table className="admin-table">
+              <thead><tr><th>ID</th><th>Status</th><th>Action</th></tr></thead>
+              <tbody>
+                {bookings.map((b) => (
+                  <tr key={b.id}>
+                    <td>#{b.id}</td>
+                    <td><span className="status-label">{b.status || 'Confirmed'}</span></td>
+                    <td><button onClick={() => handleDeleteBooking(b.id)} className="delete-btn-table">Cancel</button></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+        </div>
       </div>
     </div>
   );

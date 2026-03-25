@@ -60,21 +60,11 @@
             <scope>runtime</scope>
         </dependency>
 
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-amqp</artifactId>
-		</dependency>
-
-
-
-
-			<!-- 🔐 Spring Security -->
 			<dependency>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-starter-security</artifactId>
 			</dependency>
 
-			<!-- 🪪 JWT (for token parsing) -->
 			<dependency>
 				<groupId>io.jsonwebtoken</groupId>
 				<artifactId>jjwt-api</artifactId>
