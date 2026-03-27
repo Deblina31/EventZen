@@ -45,6 +45,7 @@ function App() {
           <Route path="/admin/bookings" element={<ProtectedRoute roles={["ADMIN"]}><AdminDashboard /></ProtectedRoute>} />
 
         </Routes>
+        
       </main>
       <Footer />
       <ToastContainer position="bottom-right" autoClose={3000} hideProgressBar={false} />

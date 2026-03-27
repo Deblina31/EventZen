@@ -50,10 +50,6 @@ builder.Services.AddAuthentication(options =>
         ValidateLifetime         = true,
         ValidateIssuerSigningKey = true,
         IssuerSigningKey         = new SymmetricSecurityKey(key),
-
-        // ── This is the only fix needed ──────────────────
-        // tells .NET: the claim named "role" IS the role claim
-        // must match EXACTLY what Spring Boot puts in the JWT
         RoleClaimType = ClaimTypes.Role,
         NameClaimType = "sub"
     };

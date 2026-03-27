@@ -10,9 +10,9 @@ const VendorDashboard = () => {
   const [venues,  setVenues]  = useState([]);
   const [events,  setEvents]  = useState([]);
   const [loading, setLoading] = useState(false);
-  const [venueForm, setVenueForm] = useState({ name: "", address: "", city: "", state: "", zipCode: "", capacity: "", description: "" });
+  const [venueForm, setVenueForm] = useState({ name: "", address: "", city: "", state: "", zipCode: "", capacity: "", description: "", amenities: "", imageUrl: "" });
   const [eventForm, setEventForm] = useState({ name: "", description: "", startDateTime: "", endDateTime: "", venueId: "", category: "SOCIAL", totalBudget: "" });
-
+  
   useEffect(() => { fetchAll(); }, []);
 
   const fetchAll = async () => {

@@ -39,20 +39,31 @@ namespace VenueService.Controllers
         public async Task<IActionResult> GetById(int id)
             => Ok(await _service.GetById(id));
 
-        //GET their created venues
+        // //GET their created venues
+        // [HttpGet("my")]
+        // [Authorize(Roles = "VENDOR,ADMIN")]
+        // public async Task<IActionResult> GetMy()
+        // {
+        //     var userId = GetUserId();
+        //     var role   = GetRole();
+
+        //     //all venues for admin
+        //     if (role == "ADMIN")
+        //         return Ok(await _service.GetAll());
+
+        //     return Ok(await _service.GetByVendor(userId));
+        // }
+
         [HttpGet("my")]
-        [Authorize(Roles = "VENDOR,ROLE_VENDOR,ADMIN")]
-        public async Task<IActionResult> GetMy()
-        {
-            var userId = GetUserId();
-            var role   = GetRole();
-
-            //all venues for admin
-            if (role == "ADMIN")
-                return Ok(await _service.GetAll());
-
-            return Ok(await _service.GetByVendor(userId));
-        }
+[Authorize(Roles = "VENDOR,ADMIN")]
+public async Task<IActionResult> GetMy()
+{
+    var userId = GetUserId();
+    var allVenues = await _service.GetAll();
+    
+    // We return all, but the frontend will check v.ownerId === currentUserId
+    return Ok(allVenues); 
+}
 
         //POST/ Create a new venue
         [HttpPost]

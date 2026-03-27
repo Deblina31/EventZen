@@ -34,11 +34,20 @@ public class JwtFilter extends OncePerRequestFilter {
                 String username = jwtUtils.getUsernameFromToken(token);
                 String role = jwtUtils.getRoleFromToken(token);
 
+                // Check if the role already has the prefix to avoid ROLE_ROLE_ADMIN
+                String authority = role.startsWith("ROLE_") ? role : "ROLE_" + role;
+
                 var auth = new UsernamePasswordAuthenticationToken(
                         username,
                         null,
-                        List.of(new SimpleGrantedAuthority("ROLE_" + role))
+                        List.of(new SimpleGrantedAuthority(authority))
                 );
+
+//                var auth = new UsernamePasswordAuthenticationToken(
+//                        username,
+//                        null,
+//                        List.of(new SimpleGrantedAuthority("ROLE_" + role))
+//                );
                 auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(auth);
             }
