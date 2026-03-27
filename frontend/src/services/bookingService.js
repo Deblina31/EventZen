@@ -1,27 +1,22 @@
 import axios from "axios";
+import { API } from "../constants/api";
+import { getToken } from "../utils/jwt";
 
-const BASE_URL = "http://localhost:3001/bookings";
+const authHeaders = () => ({
+  Authorization: `Bearer ${getToken()}`
+});
 
-export const getMyBookings = async () => {
-  const token = localStorage.getItem("token");
+export const getMyBookings = () =>
+  axios.get(API.BOOKING, { headers: authHeaders() });
 
-  return await axios.get("http://localhost:3001/bookings", {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-};
+export const getBookingById = (id) =>
+  axios.get(`${API.BOOKING}/${id}`, { headers: authHeaders() });
 
-export const createBooking = async (eventId) => {
-  const token = localStorage.getItem("token");
+export const createBooking = (data) =>
+  axios.post(API.BOOKING, data, { headers: authHeaders() });
 
-  return await axios.post(
-    BASE_URL,
-    { eventId },
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }
-  );
-};
+export const cancelBooking = (id) =>
+  axios.delete(`${API.BOOKING}/${id}`, { headers: authHeaders() });
+
+export const getAllBookings = () =>
+  axios.get(API.BOOKING, { headers: authHeaders() });

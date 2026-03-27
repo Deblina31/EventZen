@@ -1,104 +1,139 @@
-using VenueService.Data;
-using VenueService.Repositories;
-using VenueService.Services; 
-using Microsoft.EntityFrameworkCore;
-
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using System.Text.Json;
 using System.Text;
+using VenueService.Data;
+using VenueService.Middleware;
+using VenueService.Repositories;
+using VenueService.Services;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
-var key = Encoding.UTF8.GetBytes("mysecretkeymysecretkeymysecretkeymysecretkey");
+// clear default claim mappings — stops .NET remapping "role" to long URL
+JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
+JwtSecurityTokenHandler.DefaultOutboundClaimTypeMap.Clear();
+
 var builder = WebApplication.CreateBuilder(args);
+
+var jwtSecret = builder.Configuration["Jwt:Secret"]
+    ?? throw new InvalidOperationException("JWT secret not found!");
+
+var key = Encoding.UTF8.GetBytes(jwtSecret);
+
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowReactApp",
-        policy =>
-        {
-            policy.WithOrigins("http://localhost:3000") 
-                  .AllowAnyHeader()
-                  .AllowAnyMethod();
-        });
+    options.AddPolicy("AllowFrontend", policy =>
+        policy.WithOrigins("http://localhost:3000", "http://localhost:5173")
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials());
 });
 
 builder.Services.AddControllers()
-    .AddJsonOptions(options => {
-        options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
-    });
+    .AddJsonOptions(o =>
+        o.JsonSerializerOptions.PropertyNamingPolicy =
+            System.Text.Json.JsonNamingPolicy.CamelCase);
 
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme    = JwtBearerDefaults.AuthenticationScheme;
 })
 .AddJwtBearer(options =>
 {
     options.RequireHttpsMetadata = false;
-    options.SaveToken = true;
-
+    options.SaveToken            = true;
     options.TokenValidationParameters = new TokenValidationParameters
     {
-        ValidateIssuer = false,
-        ValidateAudience = false,
-        ValidateLifetime = true,
+        ValidateIssuer           = false,
+        ValidateAudience         = false,
+        ValidateLifetime         = true,
         ValidateIssuerSigningKey = true,
-        IssuerSigningKey = new SymmetricSecurityKey(key),
+        IssuerSigningKey         = new SymmetricSecurityKey(key),
 
-        RoleClaimType = System.Security.Claims.ClaimTypes.Role, 
-    NameClaimType = "sub"
+        // ── This is the only fix needed ──────────────────
+        // tells .NET: the claim named "role" IS the role claim
+        // must match EXACTLY what Spring Boot puts in the JWT
+        RoleClaimType = ClaimTypes.Role,
+        NameClaimType = "sub"
+    };
+
+    options.Events = new JwtBearerEvents
+    {
+        OnTokenValidated = context =>
+        {
+            var identity = context.Principal?.Identity as ClaimsIdentity;
+            if (identity == null) return Task.CompletedTask;
+
+            // find the "role" claim Spring Boot put in the token
+            var roleClaim = identity.FindFirst("role");
+            if (roleClaim != null)
+            {
+                // add it as ClaimTypes.Role so [Authorize(Roles=...)] works
+                identity.AddClaim(new Claim(ClaimTypes.Role, roleClaim.Value));
+            }
+
+            return Task.CompletedTask;
+        }
     };
 });
 
-builder.Services.AddOpenApi();
-builder.Services.AddControllers();
-
-
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+    {
+        Title = "EventZen Venue API", Version = "v1"
+    });
+    c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+    {
+        Name         = "Authorization",
+        Type         = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
+        Scheme       = "bearer",
+        BearerFormat = "JWT",
+        In           = Microsoft.OpenApi.Models.ParameterLocation.Header,
+        Description  = "Enter your JWT token"
+    });
+    c.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+    {
+        {
+            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+            {
+                Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                {
+                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                    Id   = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
+});
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseMySql(
         builder.Configuration.GetConnectionString("DefaultConnection"),
-        ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("DefaultConnection"))
+        ServerVersion.AutoDetect(
+            builder.Configuration.GetConnectionString("DefaultConnection"))
     ));
-    
-
 
 builder.Services.AddScoped<IVenueRepository, VenueRepository>();
 builder.Services.AddScoped<VenueServiceImpl>();
+// ── REMOVED MyClaimsTransformation entirely ──────────────
 
 var app = builder.Build();
 
-app.UseCors("AllowReactApp");
-app.UseAuthentication();  
+app.UseMiddleware<ExceptionMiddleware>();
+app.UseCors("AllowFrontend");
+app.UseAuthentication();
 app.UseAuthorization();
+
+app.UseSwagger();
+app.UseSwaggerUI(c =>
+{
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "EventZen Venue API v1");
+    c.RoutePrefix = "swagger";
+});
+
 app.MapControllers();
-
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-}
-
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast");
-
 app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}

@@ -4,11 +4,15 @@ namespace VenueService.Repositories
 {
     public interface IVenueRepository
     {
-        Task<List<Venue>> GetAll();
-        Task<Venue> GetById(int id);
-        Task<List<Venue>> GetByVendor(int userId);
+        Task<List<Venue>> GetAllActive();
+        Task<Venue?> GetById(int id);
+        Task<List<Venue>> GetByVendor(int ownerId);
         Task Add(Venue venue);
-        Task Delete(int id);
         Task Save();
+
+        Task<List<VenueAvailability>> GetAvailability(int venueId);
+        Task<VenueAvailability?> GetAvailabilitySlot(int slotId);
+        Task AddAvailability(VenueAvailability slot);
+        Task DeleteAvailability(int slotId);
     }
 }

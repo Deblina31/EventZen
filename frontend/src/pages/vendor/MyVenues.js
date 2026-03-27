@@ -1,49 +1,59 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import "./MyVenues.css"; 
+import { getMyVenues, deleteVenue, getVenueAvailability } from "../../services/venueService";
+import { toast } from "react-toastify";
 
 const MyVenues = () => {
-  const [venues, setVenues] = useState([]);
   const navigate = useNavigate();
+  const [venues,  setVenues]  = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    fetchMyVenues();
-  }, []);
+  useEffect(() => { fetchVenues(); }, []);
 
-  const fetchMyVenues = async () => {
-    const token = localStorage.getItem("token");
+  const fetchVenues = async () => {
+    setLoading(true);
     try {
-      const res = await axios.get("http://localhost:5193/venues/my", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setVenues(res.data);
-    } catch (err) {
-      console.error("Error fetching venues", err);
-    }
+      const res = await getMyVenues();
+      setVenues(Array.isArray(res.data) ? res.data : []);
+    } catch { toast.error("Failed to load venues"); }
+    finally  { setLoading(false); }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Delete this venue?")) return;
+    try {
+      await deleteVenue(id);
+      toast.success("Venue deleted");
+      setVenues(prev => prev.filter(v => (v.id || v.Id) !== id));
+    } catch { toast.error("Delete failed"); }
   };
 
   return (
-    <div className="venues-container">
-      <header className="venues-header">
-        <h2>My Venues</h2>
-      </header>
+    <div className="page-wrapper">
+      <div className="flex items-center justify-between" style={{ marginBottom: "1.5rem" }}>
+        <h1 className="page-title" style={{ margin: 0 }}>My Venues</h1>
+        <button className="btn btn-primary" onClick={() => navigate("/vendor/dashboard")}>+ Add Venue</button>
+      </div>
 
-      <div className="venues-grid">
-        {venues.map((v) => (
-          <div key={v.id} className="venue-card">
-            <div className="venue-info">
-              <h3>{v.name}</h3>
-              <p className="location">Location:- {v.location}</p>
+      {loading && <p className="text-muted">Loading...</p>}
+      {!loading && venues.length === 0 && <div className="empty-state"><p>No venues yet. Add one from your dashboard.</p></div>}
+
+      <div className="grid-2">
+        {venues.map(v => (
+          <div className="card" key={v.id || v.Id}>
+            <div style={{ marginBottom: "0.75rem" }}>
+              <h3 style={{ fontSize: "1rem", fontWeight: 600 }}>{v.name || v.Name}</h3>
+              <p style={{ fontSize: "0.8rem", color: "var(--gray-400)" }}>
+                📍 {[v.address || v.Address, v.city || v.City, v.state || v.State].filter(Boolean).join(", ")}
+              </p>
+              <p style={{ fontSize: "0.8rem", color: "var(--gray-400)" }}>
+                👥 Capacity: {v.capacity || v.Capacity}
+              </p>
             </div>
-            
-            <div className="venue-actions">
-              <button className="view-btn" onClick={() => navigate(`/vendor/view/${v.id}`)}>
-                View Details
-              </button>
-              <button className="edit-btn" onClick={() => navigate(`/vendor/edit/${v.id}`)}>
-                Edit
-              </button>
+            <div style={{ display: "flex", gap: "0.5rem" }}>
+              <button className="btn btn-outline btn-sm" onClick={() => navigate(`/vendor/view/${v.id || v.Id}`)}>View</button>
+              <button className="btn btn-primary btn-sm"  onClick={() => navigate(`/vendor/edit/${v.id || v.Id}`)}>Edit</button>
+              <button className="btn btn-danger btn-sm"   onClick={() => handleDelete(v.id || v.Id)}>Delete</button>
             </div>
           </div>
         ))}

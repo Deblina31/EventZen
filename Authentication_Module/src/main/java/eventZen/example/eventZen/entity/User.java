@@ -2,13 +2,17 @@ package eventZen.example.eventZen.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
 
 @Data
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 @Table(name= "User")
 public class User {
 
@@ -22,9 +26,38 @@ public class User {
     @Column(nullable = false)
     private String password;
 
-    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, unique = true)
+    private String email;
+
+    private String firstName;
+    private String lastName;
+    private String phoneNumber;
+    private String profilePicture;
+
+    @Enumerated(EnumType.ORDINAL)
+    @Column(nullable = false)
     private Role role;
 
-    private String email;
+    @Column(nullable = false)
+    @Builder.Default
+    private Boolean isActive = true;
+
+    @Column(updatable = false)
+    private LocalDateTime createdAt;
+
+    private LocalDateTime updatedAt;
+
+    private String modifiedBy;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
 
 }

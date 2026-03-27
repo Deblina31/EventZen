@@ -2,7 +2,6 @@ package com.eventZen.event_module.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-
 import java.time.LocalDateTime;
 
 @Entity
@@ -17,17 +16,49 @@ public class Event {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String title;
+    @Column(nullable = false, length = 100)
+    private String name;
 
+    @Column(columnDefinition = "TEXT")
     private String description;
 
-    private LocalDateTime eventDate;
+    @Column(nullable = false)
+    private LocalDateTime startDateTime;
+
+    @Column(nullable = false)
+    private LocalDateTime endDateTime;
+
+    @Column(nullable = false)
+    private Long venueId;
+
+    @Enumerated(EnumType.ORDINAL)
+    private EventCategory category;
+
+    @Column(nullable = false)
+    private Long organizerId;
 
     private Double totalBudget;
     private Double currentExpenses;
 
-    private Long userId;
-    @Column(name = "venueId")
-    private Long venueId;
+    @Builder.Default
+    @Column(nullable = false)
+    private Boolean isActive = true;
 
+    @Column(updatable = false)
+    private LocalDateTime createdAt;
+
+    private LocalDateTime updatedAt;
+
+    private String modifiedBy;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
 }

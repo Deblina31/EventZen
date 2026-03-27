@@ -1,51 +1,67 @@
-import { getUserRole } from "../utils/jwt";
-import { useNavigate } from "react-router-dom";
-import "./Navbar.css";
+import { useNavigate, useLocation } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+
+const NAV_LINKS = {
+  USER: [
+    { name: "Events",      path: "/user" },
+    { name: "My Bookings", path: "/my-bookings" },
+  ],
+  VENDOR: [
+    { name: "Dashboard",  path: "/vendor/dashboard" },
+    { name: "My Venues",  path: "/vendor/my-venues" },
+  ],
+  ADMIN: [
+    { name: "Dashboard",  path: "/admin" },
+    { name: "Users",      path: "/admin/users" },
+    { name: "Venues",     path: "/admin/venues" },
+    { name: "Bookings",   path: "/admin/bookings" },
+  ],
+};
 
 const Navbar = () => {
-  const role = getUserRole();
-  const navigate = useNavigate();
+  const { role, username, logout } = useAuth();
+  const navigate  = useNavigate();
+  const location  = useLocation();
 
-  const links = {
-    USER: [
-      { name: "Event Feed", path: "/user" },
-      { name: "My Bookings", path: "/my-bookings" },
-    ],
-    VENDOR: [
-      { name: "Dashboard", path: "/vendor" },
-      { name: "My Venues", path: "/vendor/my-venues" },
-    ],
-    ADMIN: [
-      { name: "Dashboard", path: "/admin" },
-      { name: "Users", path: "/admin/users" },
-      { name: "Venues", path: "/admin/venues" },
-      { name: "All Bookings", path: "/admin/bookings" },
-    ],
-  };
+  const handleLogout = () => { logout(); navigate("/login"); };
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    navigate("/login");
-  };
+  const roleLabel = { USER: "User", VENDOR: "Vendor", ADMIN: "Admin" }[role] || "";
 
   return (
     <nav className="navbar">
       <div className="navbar-brand" onClick={() => navigate("/")}>
-        <h3>{role} Panel</h3>
+        EventZen
       </div>
 
       <ul className="nav-links">
-        {links[role]?.map((link) => (
-          <li key={link.path} onClick={() => navigate(link.path)}>
+        {NAV_LINKS[role]?.map((link) => (
+          <li
+            key={link.path}
+            onClick={() => navigate(link.path)}
+            style={location.pathname === link.path
+              ? { background: "var(--primary-light)", color: "var(--primary)" }
+              : {}}
+          >
             {link.name}
           </li>
         ))}
       </ul>
 
-      <div className="navbar-actions">
-        <button className="logout-btn" onClick={handleLogout}>
-          Logout
-        </button>
+      <div className="nav-right">
+        {username && (
+          <span className="nav-user">
+            {username} · {roleLabel}
+          </span>
+        )}
+        {role ? (
+          <button className="btn btn-outline btn-sm" onClick={handleLogout}>
+            Logout
+          </button>
+        ) : (
+          <button className="btn btn-primary btn-sm" onClick={() => navigate("/login")}>
+            Login
+          </button>
+        )}
       </div>
     </nav>
   );

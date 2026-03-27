@@ -1,95 +1,82 @@
 import { useState } from "react";
-import axios from "axios";
-import { useNavigate } from "react-router-dom";
-import "./Login.css";
+import { useNavigate, Link } from "react-router-dom";
+import { loginUser } from "../../services/authService";
+import { useAuth } from "../../context/AuthContext";
+import { toast } from "react-toastify";
+
+const REDIRECT = { USER: "/user", VENDOR: "/vendor/dashboard", ADMIN: "/admin" };
 
 const Login = () => {
   const navigate = useNavigate();
-
-  const [form, setForm] = useState({
-    username: "",
-    password: "",
-  });
-
+  const { login } = useAuth();
+  const [form, setForm]       = useState({ username: "", password: "" });
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors]   = useState({});
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+  const validate = () => {
+    const e = {};
+    if (!form.username.trim()) e.username = "Username is required";
+    if (!form.password)        e.password = "Password is required";
+    setErrors(e);
+    return Object.keys(e).length === 0;
   };
 
-  const handleLogin = async () => {
-    if (!form.username || !form.password) {
-      alert("Please fill all fields");
-      return;
-    }
-
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!validate()) return;
     try {
       setLoading(true);
-
-      const res = await axios.post(
-        "http://localhost:8080/auth/login",
-        form
-      );
-
-      const token = res.data.token;
-
-      if (!token) {
-        alert("Login failed ");
-        return;
-      }
-
-      localStorage.setItem("token", token);
-
-      const payload = JSON.parse(atob(token.split(".")[1]));
-      const role = payload.roles[0];
-
-      if (role === "USER") navigate("/user");
-      if (role === "VENDOR") navigate("/vendor");
-      if (role === "ADMIN") navigate("/admin");
-
+      const res = await loginUser(form);
+      login(res.data.token);
+      const role = res.data.role || JSON.parse(atob(res.data.token.split(".")[1])).role;
+      toast.success("Login successful!");
+      navigate(REDIRECT[role] || "/");
     } catch (err) {
-      alert("Invalid credentials");
+      toast.error(err.response?.data?.error || "Invalid credentials");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="login-container">
-      <div className="login-box">
-        <h2>Login</h2>
+    <div className="auth-wrapper">
+      <div className="auth-card">
+        <h2 className="auth-title">EventZen</h2>
+        <p className="auth-subtitle">Sign in to your account</p>
 
-        <input
-          name="username"
-          placeholder="Username"
-          onChange={handleChange}
-          className="input-field"
-        />
+        <form onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label className="form-label">Username</label>
+            <input
+              className="form-input"
+              name="username"
+              placeholder="Enter username"
+              value={form.username}
+              onChange={(e) => setForm({ ...form, username: e.target.value })}
+            />
+            {errors.username && <p className="text-danger" style={{ fontSize: "0.8rem", marginTop: "0.25rem" }}>{errors.username}</p>}
+          </div>
 
-        <input
-          name="password"
-          type="password"
-          placeholder="Password"
-          onChange={handleChange}
-          className="input-field"
-        />
+          <div className="form-group">
+            <label className="form-label">Password</label>
+            <input
+              className="form-input"
+              name="password"
+              type="password"
+              placeholder="Enter password"
+              value={form.password}
+              onChange={(e) => setForm({ ...form, password: e.target.value })}
+            />
+            {errors.password && <p className="text-danger" style={{ fontSize: "0.8rem", marginTop: "0.25rem" }}>{errors.password}</p>}
+          </div>
 
-        <button
-          onClick={handleLogin}
-          disabled={loading}
-          className="login-btn"
-        >
-          {loading ? "Logging in..." : "Login "}
-        </button>
+          <button className="btn btn-primary w-full" style={{ marginTop: "0.5rem" }} disabled={loading}>
+            {loading ? "Signing in..." : "Sign In"}
+          </button>
+        </form>
 
-        <p className="register-text">
-          Don’t have an account?
-          <span
-            className="register-link"
-            onClick={() => navigate("/register")}
-          >
-            Register
-          </span>
+        <p className="auth-footer">
+          Don't have an account? <Link to="/register">Register</Link>
         </p>
       </div>
     </div>

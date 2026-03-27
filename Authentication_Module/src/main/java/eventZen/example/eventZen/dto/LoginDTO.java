@@ -1,9 +1,14 @@
 package eventZen.example.eventZen.dto;
 
-import lombok.*;
+import jakarta.validation.constraints.NotBlank;
+import lombok.Data;
 
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor
+@Data
 public class LoginDTO {
+
+    @NotBlank(message = "Username is required")
     private String username;
+
+    @NotBlank(message = "Password is required")
     private String password;
 }

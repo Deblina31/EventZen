@@ -6,38 +6,50 @@ import com.eventZen.event_module.entity.Event;
 
 public class EventMapper {
 
-    public static Event toEntity(EventDTO dto, Long userId) {
-        return Event.builder()
-                .title(dto.getTitle())
-                .description(dto.getDescription())
-                .eventDate(dto.getEventDate())
-                .userId(userId)
-                .venueId(dto.getVenueId())
-                .build();
-    }
-
     public static EventResponseDTO toDTO(Event event) {
-        double budget = event.getTotalBudget() != null ? event.getTotalBudget() : 0.0;
-        double expenses = event.getCurrentExpenses() != null ? event.getCurrentExpenses() : 0.0;
-
+        double total = event.getTotalBudget() != null ? event.getTotalBudget() : 0.0;
+        double spent = event.getCurrentExpenses() != null ? event.getCurrentExpenses() : 0.0;
 
         return EventResponseDTO.builder()
                 .id(event.getId())
-                .title(event.getTitle())
+                .name(event.getName())
                 .description(event.getDescription())
-                .eventDate(event.getEventDate())
-                .userId(event.getUserId())
+                .startDateTime(event.getStartDateTime())
+                .endDateTime(event.getEndDateTime())
                 .venueId(event.getVenueId())
-                .totalBudget(budget)
-                .currentExpenses(expenses)
-                .remainingBudget(budget - expenses)
+                .category(event.getCategory())
+                .organizerId(event.getOrganizerId())
+                .totalBudget(total)
+                .currentExpenses(spent)
+                .remainingBudget(total - spent)
+                .isActive(event.getIsActive())
+                .createdAt(event.getCreatedAt())
+                .updatedAt(event.getUpdatedAt())
+                .build();
+    }
+
+    public static Event toEntity(EventDTO dto, Long organizerId) {
+        return Event.builder()
+                .name(dto.getName())
+                .description(dto.getDescription())
+                .startDateTime(dto.getStartDateTime())
+                .endDateTime(dto.getEndDateTime())
+                .venueId(dto.getVenueId())
+                .category(dto.getCategory())
+                .organizerId(organizerId)
+                .totalBudget(dto.getTotalBudget())
+                .currentExpenses(0.0)
+                .isActive(true)
                 .build();
     }
 
     public static void updateEntity(Event event, EventDTO dto) {
-        event.setTitle(dto.getTitle());
+        event.setName(dto.getName());
         event.setDescription(dto.getDescription());
-        event.setEventDate(dto.getEventDate());
+        event.setStartDateTime(dto.getStartDateTime());
+        event.setEndDateTime(dto.getEndDateTime());
         event.setVenueId(dto.getVenueId());
+        event.setCategory(dto.getCategory());
+        event.setTotalBudget(dto.getTotalBudget());
     }
 }

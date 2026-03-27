@@ -1,191 +1,196 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
-import "./VendorDashboard.css";
+import { getMyVenues, createVenue } from "../../services/venueService";
+import { getMyEvents, createEvent } from "../../services/eventService";
+import { toast } from "react-toastify";
+import StatusBadge from "../../components/StatusBadge";
+
+const CATEGORIES = ["SOCIAL", "CORPORATE", "SPORTS", "TECH"];
 
 const VendorDashboard = () => {
-  const [venues, setVenues] = useState([]);
-  const [events, setEvents] = useState([]);
+  const [venues,  setVenues]  = useState([]);
+  const [events,  setEvents]  = useState([]);
   const [loading, setLoading] = useState(false);
-  const [newVenue, setNewVenue] = useState({ name: "", location: "" });
-  
-  const [newEvent, setNewEvent] = useState({ 
-    title: "", 
-    venueId: "", 
-    totalBudget: "" 
-  });
+  const [venueForm, setVenueForm] = useState({ name: "", address: "", city: "", state: "", zipCode: "", capacity: "", description: "" });
+  const [eventForm, setEventForm] = useState({ name: "", description: "", startDateTime: "", endDateTime: "", venueId: "", category: "SOCIAL", totalBudget: "" });
 
-  const token = localStorage.getItem("token");
+  useEffect(() => { fetchAll(); }, []);
 
-  const fetchVenues = async () => {
+  const fetchAll = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
-      const res = await axios.get("http://localhost:5193/venues", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = res.data.venues || res.data; 
-      setVenues(Array.isArray(data) ? data : []);
-    } catch (err) {
-      console.error("Fetch venues error", err);
-    } finally {
-      setLoading(false);
-    }
+      const [vRes, eRes] = await Promise.all([getMyVenues(), getMyEvents()]);
+      setVenues(Array.isArray(vRes.data) ? vRes.data : []);
+      setEvents(Array.isArray(eRes.data) ? eRes.data : []);
+    } catch { toast.error("Failed to load data"); }
+    finally  { setLoading(false); }
   };
 
-  const fetchEvents = async () => {
+  const handleAddVenue = async (e) => {
+    e.preventDefault();
     try {
-      const res = await axios.get("http://localhost:8081/events", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setEvents(res.data);
-    } catch (err) {
-      console.error("Fetch events error", err);
-    }
+      await createVenue({ ...venueForm, capacity: parseInt(venueForm.capacity) });
+      toast.success("Venue added!");
+      setVenueForm({ name: "", address: "", city: "", state: "", zipCode: "", capacity: "", description: "" });
+      fetchAll();
+    } catch (err) { toast.error(err.response?.data?.error || "Failed to add venue"); }
   };
 
-  useEffect(() => {
-    fetchVenues();
-    fetchEvents();
-  }, []);
-
-  const addVenue = async () => {
+  const handleAddEvent = async (e) => {
+    e.preventDefault();
     try {
-      await axios.post("http://localhost:5193/venues", newVenue, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setNewVenue({ name: "", location: "" });
-      fetchVenues();
-    } catch (err) {
-      console.error("Add venue error", err);
-    }
+      await createEvent({ ...eventForm, venueId: parseInt(eventForm.venueId), totalBudget: parseFloat(eventForm.totalBudget) });
+      toast.success("Event created!");
+      setEventForm({ name: "", description: "", startDateTime: "", endDateTime: "", venueId: "", category: "SOCIAL", totalBudget: "" });
+      fetchAll();
+    } catch (err) { toast.error(err.response?.data?.error || "Failed to create event"); }
   };
 
-  const addEvent = async () => {
-    if (!newEvent.venueId || !newEvent.totalBudget) {
-      return alert("Please fill in the title, venue, and budget!");
-    }
-    try {
-      await axios.post("http://localhost:8081/events", newEvent, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setNewEvent({ title: "", venueId: "", totalBudget: "" });
-      fetchEvents();
-    } catch (err) {
-      console.error("Add event error", err);
-    }
-  };
+  // Stats
+  const totalBudget  = events.reduce((s, e) => s + (e.totalBudget || 0), 0);
+  const totalSpent   = events.reduce((s, e) => s + (e.currentExpenses || 0), 0);
 
   return (
-    <div className="vendor-container">
-      <div className="vendor-content">
-        <h2>Vendor Dashboard</h2>
+    <div className="page-wrapper">
+      <h1 className="page-title">Vendor Dashboard</h1>
 
-        {loading && <p className="loading-text">Loading Data...</p>}
+      {/* Stats */}
+      <div className="grid-4" style={{ marginBottom: "2rem" }}>
+        {[
+          { label: "My Venues",  value: venues.length,  cls: "stat-blue" },
+          { label: "My Events",  value: events.length,  cls: "stat-green" },
+          { label: "Total Budget",  value: `₹${totalBudget.toLocaleString()}`, cls: "stat-amber" },
+          { label: "Total Spent",   value: `₹${totalSpent.toLocaleString()}`,  cls: "stat-red" },
+        ].map(s => (
+          <div className={`stat-card ${s.cls}`} key={s.label}>
+            <div className="stat-value">{s.value}</div>
+            <div className="stat-label">{s.label}</div>
+          </div>
+        ))}
+      </div>
 
-        <div className="dashboard-grid">
-          <section className="dashboard-section">
-            <h3>Your Venues</h3>
-            <div className="venue-list">
-              {venues.length === 0 ? (
-                <p className="empty-text">No venues added yet</p>
-              ) : (
-                venues.map((v) => (
-                  <div key={v.id || v.Id} className="venue-card">
-                    <div>
-                      <strong>{v.name || v.Name}</strong>
-                      <p className="location">{v.location || v.Location}</p>
-                    </div>
-                    <button className="edit-btn" onClick={() => window.location.href = `/vendor/edit/${v.id || v.Id}`}>
-                      Edit
-                    </button>
+      {loading && <p className="text-muted">Loading...</p>}
+
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.5rem" }}>
+
+        {/* Venues section */}
+        <div>
+          <h2 className="section-title">My Venues</h2>
+          <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem", marginBottom: "1.5rem" }}>
+            {venues.length === 0 && <div className="empty-state"><p>No venues yet</p></div>}
+            {venues.map(v => (
+              <div className="card" key={v.id || v.Id} style={{ padding: "1rem" }}>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p style={{ fontWeight: 600, fontSize: "0.9rem" }}>{v.name || v.Name}</p>
+                    <p style={{ fontSize: "0.8rem", color: "var(--gray-400)" }}>{v.city || v.City} · Cap: {v.capacity || v.Capacity}</p>
                   </div>
-                ))
-              )}
-            </div>
+                  <a href={`/vendor/edit/${v.id || v.Id}`} className="btn btn-outline btn-sm">Edit</a>
+                </div>
+              </div>
+            ))}
+          </div>
 
-            <div className="add-form">
-              <h4>Add New Venue</h4>
-              <input type="text" placeholder="Venue Name" value={newVenue.name} onChange={(e) => setNewVenue({ ...newVenue, name: e.target.value })} className="input-field" />
-              <input type="text" placeholder="Location" value={newVenue.location} onChange={(e) => setNewVenue({ ...newVenue, location: e.target.value })} className="input-field" />
-              <button className="add-btn" onClick={addVenue}>Add Venue</button>
-            </div>
-          </section>
+          {/* Add venue form */}
+          <div className="card">
+            <h3 className="section-title">Add New Venue</h3>
+            <form onSubmit={handleAddVenue}>
+              {[
+                { label: "Venue Name", name: "name",        type: "text" },
+                { label: "Address",    name: "address",     type: "text" },
+                { label: "City",       name: "city",        type: "text" },
+                { label: "State",      name: "state",       type: "text" },
+                { label: "Zip Code",   name: "zipCode",     type: "text" },
+                { label: "Capacity",   name: "capacity",    type: "number" },
+              ].map(f => (
+                <div className="form-group" key={f.name}>
+                  <label className="form-label">{f.label}</label>
+                  <input className="form-input" type={f.type} placeholder={f.label}
+                    value={venueForm[f.name]}
+                    onChange={e => setVenueForm({ ...venueForm, [f.name]: e.target.value })} />
+                </div>
+              ))}
+              <div className="form-group">
+                <label className="form-label">Description</label>
+                <textarea className="form-input" rows={2} value={venueForm.description}
+                  onChange={e => setVenueForm({ ...venueForm, description: e.target.value })} />
+              </div>
+              <button className="btn btn-primary w-full" type="submit">Add Venue</button>
+            </form>
+          </div>
+        </div>
 
-         
-          <section className="dashboard-section">
-            <h3>Your Events</h3>
-            <div className="event-list">
-              {events.length === 0 ? (
-                <p className="empty-text">No events added yet</p>
-              ) : (
-                events.map((e) => {
-                  const actualVenueId = e.venueId || e.venue_id || e.venueID;
-                  const matchedVenue = venues.find((v) => (v.id || v.Id)?.toString() === actualVenueId?.toString());
+        {/* Events section */}
+        <div>
+          <h2 className="section-title">My Events</h2>
+          <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem", marginBottom: "1.5rem" }}>
+            {events.length === 0 && <div className="empty-state"><p>No events yet</p></div>}
+            {events.map(ev => (
+              <div className="card" key={ev.id} style={{ padding: "1rem" }}>
+                <div className="flex items-center justify-between" style={{ marginBottom: "0.5rem" }}>
+                  <p style={{ fontWeight: 600, fontSize: "0.9rem" }}>{ev.name || ev.title}</p>
+                  {ev.category && <span className="badge badge-info">{ev.category}</span>}
+                </div>
+                <div style={{ fontSize: "0.8rem", color: "var(--gray-400)" }}>
+                  <p>Budget: ₹{(ev.totalBudget || 0).toLocaleString()} · Spent: ₹{(ev.currentExpenses || 0).toLocaleString()}</p>
+                  <p style={{ color: ev.remainingBudget < 0 ? "var(--danger)" : "var(--success)" }}>
+                    Remaining: ₹{(ev.remainingBudget || 0).toLocaleString()}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
 
-                  return (
-                    <div key={e.id} className="event-card">
-                      <div className="event-info">
-                        <strong>{e.title}</strong>
-                        <p className="location-subtext">
-                          {matchedVenue ? (matchedVenue.location || matchedVenue.Location) : `ID: ${actualVenueId} (Link Pending)`}
-                        </p>
-                        
-                
-                        <div className="event-finances">
-                          <div className="finance-row">
-                            <span>Budget:</span>
-                            <span>Rs{e.totalBudget?.toLocaleString() || 0}</span>
-                          </div>
-                          <div className="finance-row">
-                            <span>Spent:</span>
-                            <span className="spent-text">Rs{e.currentExpenses?.toLocaleString() || 0}</span>
-                          </div>
-                          <hr />
-                          <div className={`finance-row total ${e.remainingBudget < 0 ? "negative" : ""}`}>
-                            <span>Remaining:</span>
-                            <span>Rs{e.remainingBudget?.toLocaleString() || 0}</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })
-              )}
-            </div>
-
-            <div className="add-form">
-              <h4>Create Event</h4>
-              <input 
-                type="text" 
-                placeholder="Event Title" 
-                value={newEvent.title} 
-                onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })} 
-                className="input-field" 
-              />
-              
-              <select 
-                className="input-field" 
-                value={newEvent.venueId} 
-                onChange={(e) => setNewEvent({ ...newEvent, venueId: e.target.value })}
-              >
-                <option value="">Select Venue</option>
-                {venues.map(v => (
-                  <option key={v.id || v.Id} value={v.id || v.Id}>
-                    {v.name || v.Name} — {v.location || v.Location}
-                  </option>
-                ))}
-              </select>
-
-              <input 
-                type="number" 
-                placeholder="Total Budget (INR)" 
-                value={newEvent.totalBudget} 
-                onChange={(e) => setNewEvent({ ...newEvent, totalBudget: e.target.value })} 
-                className="input-field" 
-              />
-
-              <button className="add-btn event-btn" onClick={addEvent}>Add Event</button>
-            </div>
-          </section>
+          {/* Create event form */}
+          <div className="card">
+            <h3 className="section-title">Create Event</h3>
+            <form onSubmit={handleAddEvent}>
+              <div className="form-group">
+                <label className="form-label">Event Name</label>
+                <input className="form-input" placeholder="Event name" value={eventForm.name}
+                  onChange={e => setEventForm({ ...eventForm, name: e.target.value })} />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Description</label>
+                <textarea className="form-input" rows={2} value={eventForm.description}
+                  onChange={e => setEventForm({ ...eventForm, description: e.target.value })} />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Start Date & Time</label>
+                <input className="form-input" type="datetime-local" value={eventForm.startDateTime}
+                  onChange={e => setEventForm({ ...eventForm, startDateTime: e.target.value })} />
+              </div>
+              <div className="form-group">
+                <label className="form-label">End Date & Time</label>
+                <input className="form-input" type="datetime-local" value={eventForm.endDateTime}
+                  onChange={e => setEventForm({ ...eventForm, endDateTime: e.target.value })} />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Venue</label>
+                <select className="form-select" value={eventForm.venueId}
+                  onChange={e => setEventForm({ ...eventForm, venueId: e.target.value })}>
+                  <option value="">Select a venue</option>
+                  {venues.map(v => (
+                    <option key={v.id || v.Id} value={v.id || v.Id}>
+                      {v.name || v.Name} — {v.city || v.City}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="form-group">
+                <label className="form-label">Category</label>
+                <select className="form-select" value={eventForm.category}
+                  onChange={e => setEventForm({ ...eventForm, category: e.target.value })}>
+                  {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
+              <div className="form-group">
+                <label className="form-label">Total Budget (₹)</label>
+                <input className="form-input" type="number" placeholder="0" value={eventForm.totalBudget}
+                  onChange={e => setEventForm({ ...eventForm, totalBudget: e.target.value })} />
+              </div>
+              <button className="btn btn-primary w-full" type="submit">Create Event</button>
+            </form>
+          </div>
         </div>
       </div>
     </div>

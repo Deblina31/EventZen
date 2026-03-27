@@ -1,7 +1,7 @@
 package com.eventZen.event_module.dto;
 
+import com.eventZen.event_module.entity.EventCategory;
 import lombok.*;
-
 import java.time.LocalDateTime;
 
 @Data
@@ -11,14 +11,17 @@ import java.time.LocalDateTime;
 public class EventResponseDTO {
 
     private Long id;
-    private String title;
+    private String name;
     private String description;
-    private LocalDateTime eventDate;
-
+    private LocalDateTime startDateTime;
+    private LocalDateTime endDateTime;
+    private Long venueId;
+    private EventCategory category;
+    private Long organizerId;
     private Double totalBudget;
     private Double currentExpenses;
     private Double remainingBudget;
-
-    private Long venueId;
-    private Long userId;
+    private Boolean isActive;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 }

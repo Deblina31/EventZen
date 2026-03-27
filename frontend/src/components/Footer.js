@@ -1,11 +1,7 @@
-import "./Footer.css";
-
-const Footer = () => {
-  return (
-    <footer className="footer">
-      <p>© EventZen 2026</p>
-    </footer>
-  );
-};
+const Footer = () => (
+  <footer className="footer">
+    © {new Date().getFullYear()} EventZen
+  </footer>
+);
 
 export default Footer;
