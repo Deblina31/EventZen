@@ -11,7 +11,7 @@ const UserDashboard = () => {
   const [venues,   setVenues]   = useState([]);
   const [category, setCategory] = useState("ALL");
   const [loading,  setLoading]  = useState(false);
-  const [booking,  setBooking]  = useState(null); // id currently being booked
+  const [booking,  setBooking]  = useState(null); 
 
   useEffect(() => { fetchData(); }, [category]);
 
@@ -86,9 +86,9 @@ const UserDashboard = () => {
               </p>
 
               <div style={{ fontSize: "0.8rem", color: "var(--gray-400)", marginBottom: "1rem" }}>
-                <p>📍 {venue ? `${venue.name || venue.Name} — ${venue.city || venue.City || ""}` : "Venue TBD"}</p>
-                <p>🗓 {event.startDateTime ? new Date(event.startDateTime).toLocaleString() : "Date TBD"}</p>
-                {event.totalBudget && <p>💰 Budget: ₹{event.totalBudget?.toLocaleString()}</p>}
+                <p>{venue ? `${venue.name || venue.Name} — ${venue.city || venue.City || ""}` : "Venue TBD"}</p>
+                <p>{event.startDateTime ? new Date(event.startDateTime).toLocaleString() : "Date TBD"}</p>
+                {event.totalBudget && <p>Budget: Rs {event.totalBudget?.toLocaleString()}</p>}
               </div>
 
               <button

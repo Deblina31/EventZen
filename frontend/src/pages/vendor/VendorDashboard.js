@@ -45,7 +45,7 @@ const VendorDashboard = () => {
     } catch (err) { toast.error(err.response?.data?.error || "Failed to create event"); }
   };
 
-  // Stats
+
   const totalBudget  = events.reduce((s, e) => s + (e.totalBudget || 0), 0);
   const totalSpent   = events.reduce((s, e) => s + (e.currentExpenses || 0), 0);
 
@@ -53,7 +53,6 @@ const VendorDashboard = () => {
     <div className="page-wrapper">
       <h1 className="page-title">Vendor Dashboard</h1>
 
-      {/* Stats */}
       <div className="grid-4" style={{ marginBottom: "2rem" }}>
         {[
           { label: "My Venues",  value: venues.length,  cls: "stat-blue" },
@@ -72,7 +71,6 @@ const VendorDashboard = () => {
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.5rem" }}>
 
-        {/* Venues section */}
         <div>
           <h2 className="section-title">My Venues</h2>
           <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem", marginBottom: "1.5rem" }}>
@@ -90,7 +88,6 @@ const VendorDashboard = () => {
             ))}
           </div>
 
-          {/* Add venue form */}
           <div className="card">
             <h3 className="section-title">Add New Venue</h3>
             <form onSubmit={handleAddVenue}>
@@ -119,7 +116,6 @@ const VendorDashboard = () => {
           </div>
         </div>
 
-        {/* Events section */}
         <div>
           <h2 className="section-title">My Events</h2>
           <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem", marginBottom: "1.5rem" }}>
@@ -131,16 +127,15 @@ const VendorDashboard = () => {
                   {ev.category && <span className="badge badge-info">{ev.category}</span>}
                 </div>
                 <div style={{ fontSize: "0.8rem", color: "var(--gray-400)" }}>
-                  <p>Budget: ₹{(ev.totalBudget || 0).toLocaleString()} · Spent: ₹{(ev.currentExpenses || 0).toLocaleString()}</p>
+                  <p>Budget: Rs {(ev.totalBudget || 0).toLocaleString()} · Spent: Rs{(ev.currentExpenses || 0).toLocaleString()}</p>
                   <p style={{ color: ev.remainingBudget < 0 ? "var(--danger)" : "var(--success)" }}>
-                    Remaining: ₹{(ev.remainingBudget || 0).toLocaleString()}
+                    Remaining: Rs {(ev.remainingBudget || 0).toLocaleString()}
                   </p>
                 </div>
               </div>
             ))}
           </div>
 
-          {/* Create event form */}
           <div className="card">
             <h3 className="section-title">Create Event</h3>
             <form onSubmit={handleAddEvent}>
@@ -184,7 +179,7 @@ const VendorDashboard = () => {
                 </select>
               </div>
               <div className="form-group">
-                <label className="form-label">Total Budget (₹)</label>
+                <label className="form-label">Total Budget (Rs)</label>
                 <input className="form-input" type="number" placeholder="0" value={eventForm.totalBudget}
                   onChange={e => setEventForm({ ...eventForm, totalBudget: e.target.value })} />
               </div>

@@ -8,7 +8,6 @@ export const AuthProvider = ({ children }) => {
   const [role, setRole]       = useState(getUserRole);
   const [username, setUsername] = useState(getUsername);
 
-  // on mount — clear expired token automatically
   useEffect(() => {
     if (token && isTokenExpired()) {
       logout();

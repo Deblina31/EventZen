@@ -61,10 +61,10 @@ const MyBookings = () => {
             </div>
 
             <div style={{ fontSize: "0.8rem", color: "var(--gray-400)", marginBottom: "1rem" }}>
-              <p>🗓 {b.event?.startDateTime ? new Date(b.event.startDateTime).toLocaleString() : "Date TBD"}</p>
-              <p>🎟 Ticket: {b.ticketType || "Standard"} × {b.quantity || 1}</p>
-              <p>💳 Payment: <StatusBadge status={b.paymentStatus} /></p>
-              <p>📅 Booked: {new Date(b.registrationDate || b.createdAt).toLocaleDateString()}</p>
+              <p>{b.event?.startDateTime ? new Date(b.event.startDateTime).toLocaleString() : "Date TBD"}</p>
+              <p>Ticket: {b.ticketType || "Standard"} × {b.quantity || 1}</p>
+              <p>Payment: <StatusBadge status={b.paymentStatus} /></p>
+              <p>Booked: {new Date(b.registrationDate || b.createdAt).toLocaleDateString()}</p>
             </div>
 
             {b.status !== "cancelled" && (

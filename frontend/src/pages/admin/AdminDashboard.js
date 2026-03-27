@@ -14,7 +14,6 @@ const TABS = ["Overview", "Users", "Events", "Venues", "Bookings"];
 const AdminDashboard = () => {
   const location = useLocation();
 
-  // --- TAB LOGIC ---
   const getTabFromPath = (path) => {
     if (path.includes("/users"))    return "Users";
     if (path.includes("/events"))   return "Events";
@@ -25,12 +24,10 @@ const AdminDashboard = () => {
 
   const [tab, setTab] = useState(() => getTabFromPath(location.pathname));
 
-  // Sync tab state when URL changes (e.g., clicking a sidebar link)
   useEffect(() => {
     setTab(getTabFromPath(location.pathname));
   }, [location.pathname]);
 
-  // --- DATA STATE ---
   const [users, setUsers] = useState([]);
   const [events, setEvents] = useState([]);
   const [venues, setVenues] = useState([]);
@@ -39,7 +36,6 @@ const AdminDashboard = () => {
 
   const headers = { Authorization: `Bearer ${getToken()}` };
 
-  // --- FETCHING LOGIC ---
   const fetchAll = useCallback(async () => {
     try {
       const [uRes, eRes, vRes, bRes] = await Promise.allSettled([
@@ -68,7 +64,6 @@ const AdminDashboard = () => {
     fetchAll();
   }, [fetchAll]);
 
-  // --- ACTIONS ---
   const handleDeleteUser = async (id) => {
     if (!window.confirm("Are you sure you want to delete this user?")) return;
     try {
@@ -108,7 +103,6 @@ const AdminDashboard = () => {
     <div className="page-wrapper">
       <h1 className="page-title">Admin Dashboard</h1>
 
-      {/* Quick Stats Grid */}
       <div className="grid-4" style={{ marginBottom: "2rem" }}>
         {[
           { label: "Users",    value: users.length,    cls: "stat-blue" },
@@ -123,7 +117,6 @@ const AdminDashboard = () => {
         ))}
       </div>
 
-      {/* Tab Navigation */}
       <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1.5rem", borderBottom: "1px solid var(--gray-200)", paddingBottom: "0.75rem" }}>
         {TABS.map(t => (
           <button 
@@ -136,7 +129,6 @@ const AdminDashboard = () => {
         ))}
       </div>
 
-      {/* VIEW: Users */}
       {tab === "Users" && (
         <div className="card">
           <div className="flex items-center justify-between" style={{ marginBottom: "1rem" }}>
@@ -165,7 +157,6 @@ const AdminDashboard = () => {
         </div>
       )}
 
-      {/* VIEW: Events */}
       {tab === "Events" && (
         <div className="card">
           <h2 className="section-title">Event Management</h2>
@@ -187,7 +178,6 @@ const AdminDashboard = () => {
         </div>
       )}
 
-      {/* VIEW: Venues */}
       {tab === "Venues" && (
         <div className="card">
           <h2 className="section-title">Venue Management</h2>
@@ -209,7 +199,6 @@ const AdminDashboard = () => {
         </div>
       )}
 
-      {/* VIEW: Bookings */}
       {tab === "Bookings" && (
         <div className="card">
           <h2 className="section-title">Booking Management</h2>
@@ -232,7 +221,6 @@ const AdminDashboard = () => {
         </div>
       )}
 
-      {/* VIEW: Overview (Default) */}
       {tab === "Overview" && (
         <div className="grid-2">
           {[

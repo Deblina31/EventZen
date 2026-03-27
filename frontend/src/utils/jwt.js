@@ -1,4 +1,3 @@
-// our Spring Boot auth module puts role as "role" claim (string), not "roles" array
 export const getToken = () => localStorage.getItem("token");
 
 export const getPayload = () => {
@@ -14,7 +13,6 @@ export const getPayload = () => {
 export const getUserRole = () => {
   const payload = getPayload();
   if (!payload) return null;
-  // handles both "role" (our backend) and "roles" array (fallback)
   return payload.role || payload.roles?.[0] || null;
 };
 

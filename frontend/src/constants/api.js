@@ -1,4 +1,3 @@
-// all backend URLs in one place — change port here, fixed everywhere
 export const API = {
   AUTH:    "http://localhost:8080/api/v1/auth",
   EVENTS:  "http://localhost:8081/api/v1/events",

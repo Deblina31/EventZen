@@ -6,7 +6,6 @@ import { toast } from "react-toastify";
 
 const REDIRECT = { USER: "/user", VENDOR: "/vendor/dashboard", ADMIN: "/admin" };
 
-// ✅ 1. MOVE THIS OUTSIDE THE REGISTER COMPONENT
 const Field = ({ label, name, type = "text", placeholder, required, form, errors, set }) => (
   <div className="form-group">
     <label className="form-label">
@@ -86,14 +85,13 @@ const Register = () => {
     }
   };
 
-  // ✅ 2. PASS PROPS TO THE FIELD COMPONENT BELOW
   return (
     <div className="auth-wrapper">
       <div className="auth-card" style={{ maxWidth: 480 }}>
         <h2 className="auth-title">Create Account</h2>
         <form onSubmit={handleSubmit}>
-          <Field label="Username" name="username" required placeholder="Choose a username" form={form} errors={errors} set={set} />
-          <Field label="Email" name="email" type="email" required placeholder="your@email.com" form={form} errors={errors} set={set} />
+          <Field label="Username" name="username" required placeholder="Enter username" form={form} errors={errors} set={set} />
+          <Field label="Email" name="email" type="email" required placeholder="abc@email.com" form={form} errors={errors} set={set} />
           <Field label="Password" name="password" type="password" required placeholder="Min 8 characters" form={form} errors={errors} set={set} />
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 1rem" }}>
@@ -101,14 +99,14 @@ const Register = () => {
             <Field label="Last Name" name="lastName" placeholder="Last name" form={form} errors={errors} set={set} />
           </div>
 
-          <Field label="Phone Number" name="phoneNumber" placeholder="+91 9876543210" form={form} errors={errors} set={set} />
+          <Field label="Phone Number" name="phoneNumber" placeholder="+91 1234567890" form={form} errors={errors} set={set} />
 
           <div className="form-group">
-            <label className="form-label">Account Type</label>
+            <label className="form-label">Choose Your Role</label>
             <select className="form-select" value={form.role} onChange={set("role")}>
-              <option value="USER">User — Browse & book events</option>
-              <option value="VENDOR">Vendor — Manage venues & events</option>
-              <option value="ADMIN">Admin — Full system access</option>
+              <option value="USER">User</option>
+              <option value="VENDOR">Vendor</option>
+              <option value="ADMIN">Admin</option>
             </select>
           </div>
 

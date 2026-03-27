@@ -44,10 +44,10 @@ const MyVenues = () => {
             <div style={{ marginBottom: "0.75rem" }}>
               <h3 style={{ fontSize: "1rem", fontWeight: 600 }}>{v.name || v.Name}</h3>
               <p style={{ fontSize: "0.8rem", color: "var(--gray-400)" }}>
-                📍 {[v.address || v.Address, v.city || v.City, v.state || v.State].filter(Boolean).join(", ")}
+                {[v.address || v.Address, v.city || v.City, v.state || v.State].filter(Boolean).join(", ")}
               </p>
               <p style={{ fontSize: "0.8rem", color: "var(--gray-400)" }}>
-                👥 Capacity: {v.capacity || v.Capacity}
+                Capacity: {v.capacity || v.Capacity}
               </p>
             </div>
             <div style={{ display: "flex", gap: "0.5rem" }}>
