@@ -29,4 +29,23 @@ public class EventDTO {
 
     @PositiveOrZero(message = "Budget cannot be negative")
     private Double totalBudget;
+
+    @PositiveOrZero(message = "Ticket price cannot be negative")
+    private Double ticketPrice;
+
+    @NotNull(message = "Capacity is required")
+    @Min(value = 1, message = "Capacity must be at least 1")
+    private Integer capacity;
+
+    @PositiveOrZero
+    private Double venueRent;
+
+    @PositiveOrZero
+    private Double standardPrice;
+
+    @PositiveOrZero
+    private Double vipPrice;
+
+    @PositiveOrZero
+    private Double premiumPrice;
 }

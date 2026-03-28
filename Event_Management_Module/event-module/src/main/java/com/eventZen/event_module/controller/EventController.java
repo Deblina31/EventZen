@@ -15,6 +15,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/events")
@@ -104,5 +105,29 @@ public class EventController {
         boolean isAdmin = extractIsAdmin(request);
         eventService.delete(id, userId, isAdmin);
         return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{id}/expenses")
+    @PreAuthorize("hasAnyRole('VENDOR', 'ADMIN')")
+    @Operation(summary = "Add expense to event budget")
+    public ResponseEntity<EventResponseDTO> addExpense(
+            @PathVariable Long id,
+            @RequestBody Map<String, Double> body,
+            HttpServletRequest request) {
+        Long userId  = extractUserId(request);
+        boolean isAdmin = extractIsAdmin(request);
+        return ResponseEntity.ok(
+                eventService.updateExpenses(id, body.get("amount"), userId, isAdmin)
+        );
+    }
+
+    @PatchMapping("/{id}/ticket-sale")
+    @Operation(summary = "Record a ticket sale")
+    public ResponseEntity<EventResponseDTO> recordTicketSale(
+            @PathVariable Long id,
+            @RequestBody Map<String, Object> body) {
+        Double amount     = Double.valueOf(body.get("amount").toString());
+        String ticketType = body.get("ticketType").toString();
+        return ResponseEntity.ok(eventService.recordTicketSale(id, amount, ticketType));
     }
 }

@@ -30,11 +30,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers(
-                                "/swagger-ui/**",
-                                "/api-docs/**"
-                        ).permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS, "/swagger-ui/**", "/api-docs/**","/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/events/**").authenticated()
                         .anyRequest().authenticated()
                 )
@@ -47,7 +43,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(List.of("http://localhost:3000", "http://localhost:5173"));
-        config.setAllowedMethods(Arrays.asList("GET","POST","PUT","DELETE","OPTIONS"));
+        config.setAllowedMethods(Arrays.asList("GET","POST","PUT","PATCH","DELETE","OPTIONS"));
         config.setAllowedHeaders(Arrays.asList("Authorization","Content-Type","Accept"));
         config.setAllowCredentials(true);
         config.setMaxAge(3600L);

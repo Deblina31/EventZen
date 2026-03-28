@@ -34,19 +34,14 @@ public class SecurityConfig {
                         s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/api/v1/auth/**",
-                                "/api/v1/public/**",
-                                "/swagger-ui/**",
-                                "/api-docs/**"
-                        ).permitAll()
+                                "/api/v1/auth/**","/swagger-ui/**", "/api-docs/**").permitAll()
+                        .requestMatchers("/api/v1/auth/profile/**").authenticated()
                         .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/v1/vendor/**").hasRole("VENDOR")
                         .anyRequest().authenticated()
                 )
-                .addFilterBefore(jwtFilter,
-                        UsernamePasswordAuthenticationFilter.class);
-
-        return http.build();
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+                return http.build();
     }
 
     @Bean
@@ -68,7 +63,7 @@ public class SecurityConfig {
                 "http://localhost:5173"
         ));
         config.setAllowedMethods(List.of(
-                "GET", "POST", "PUT", "DELETE", "OPTIONS"
+                "GET","POST","PATCH","PUT","DELETE","OPTIONS"
         ));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);

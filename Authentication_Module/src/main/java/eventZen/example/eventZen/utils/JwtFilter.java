@@ -20,9 +20,7 @@ public class JwtFilter extends OncePerRequestFilter {
     private final JwtUtils jwtUtils;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain chain)
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
 
         String header = request.getHeader("Authorization");
@@ -33,21 +31,12 @@ public class JwtFilter extends OncePerRequestFilter {
             if (jwtUtils.validateToken(token)) {
                 String username = jwtUtils.getUsernameFromToken(token);
                 String role = jwtUtils.getRoleFromToken(token);
-
-                // Check if the role already has the prefix to avoid ROLE_ROLE_ADMIN
                 String authority = role.startsWith("ROLE_") ? role : "ROLE_" + role;
-
                 var auth = new UsernamePasswordAuthenticationToken(
                         username,
                         null,
                         List.of(new SimpleGrantedAuthority(authority))
                 );
-
-//                var auth = new UsernamePasswordAuthenticationToken(
-//                        username,
-//                        null,
-//                        List.of(new SimpleGrantedAuthority("ROLE_" + role))
-//                );
                 auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(auth);
             }

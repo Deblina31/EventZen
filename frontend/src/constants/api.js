@@ -5,4 +5,5 @@ export const API = {
   BOOKING: "http://localhost:3001/api/v1/bookings",
   FEEDBACK:"http://localhost:3001/api/v1/feedback",
   ADMIN:   "http://localhost:8080/api/v1/admin",
+  PROFILE:  "http://localhost:8080/api/v1/auth/profile"
 };

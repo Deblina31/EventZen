@@ -21,9 +21,7 @@ public class AdminController {
 
     @Autowired
     private AuthService authService;
-
     private final UserRepository userRepository;
-
 
     @GetMapping("/users")
     public ResponseEntity<?> getUsers(

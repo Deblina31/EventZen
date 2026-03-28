@@ -24,4 +24,15 @@ public class EventResponseDTO {
     private Boolean isActive;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private Double ticketPrice;
+
+    private Integer capacity;
+    private Integer soldTickets;
+    private Integer availableCapacity;
+    private Double  venueRent;
+    private Double  standardPrice;
+    private Double  vipPrice;
+    private Double  premiumPrice;
+    private Double  earnedRevenue;
+    private Double  currentBalance;
 }

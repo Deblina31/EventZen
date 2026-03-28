@@ -32,6 +32,8 @@ public class User {
     private String firstName;
     private String lastName;
     private String phoneNumber;
+
+    @Column(columnDefinition = "LONGTEXT")
     private String profilePicture;
 
     @Enumerated(EnumType.ORDINAL)

@@ -20,6 +20,8 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 
+import UserProfile from "./pages/user/UserProfile";
+
 function App() {
   return (
     <Router>
@@ -43,7 +45,7 @@ function App() {
           <Route path="/admin/users"    element={<ProtectedRoute roles={["ADMIN"]}><AdminDashboard /></ProtectedRoute>} />
           <Route path="/admin/venues"   element={<ProtectedRoute roles={["ADMIN"]}><AdminDashboard /></ProtectedRoute>} />
           <Route path="/admin/bookings" element={<ProtectedRoute roles={["ADMIN"]}><AdminDashboard /></ProtectedRoute>} />
-
+          <Route path="/profile" element={<ProtectedRoute roles={["USER","VENDOR","ADMIN"]}><UserProfile /></ProtectedRoute>} />
         </Routes>
         
       </main>

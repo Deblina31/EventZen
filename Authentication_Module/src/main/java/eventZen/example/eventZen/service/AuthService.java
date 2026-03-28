@@ -7,6 +7,11 @@ import eventZen.example.eventZen.utils.JwtUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.util.Base64;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -18,7 +23,7 @@ public class AuthService {
 
     public AuthResponseDTO register(RegisterDTO dto) {
         if (userRepository.existsByUsername(dto.getUsername())) {
-            throw new IllegalArgumentException("Username already taken");
+            throw new IllegalArgumentException("Username already taken. Please choose anathor");
         }
         if (userRepository.existsByEmail(dto.getEmail())) {
             throw new IllegalArgumentException("Email already registered");
@@ -45,9 +50,6 @@ public class AuthService {
                 .build();
 
         userRepository.save(user);
-
-        //String token = jwtUtils.generateToken(user.getUsername(), user.getRole().name());
-
         String token = jwtUtils.generateToken(user.getUsername(), user.getRole().name(), user.getId());
 
         return new AuthResponseDTO(token, user.getRole().name(),
@@ -65,11 +67,7 @@ public class AuthService {
         if (!passwordEncoder.matches(dto.getPassword(), user.getPassword())) {
             throw new RuntimeException("Invalid username or password");
         }
-
-        //String token = jwtUtils.generateToken(user.getUsername(), user.getRole().name());
-
         String token = jwtUtils.generateToken(user.getUsername(), user.getRole().name(), user.getId());
-
         return new AuthResponseDTO(token, user.getRole().name(),
                 user.getUsername(), user.getId());
 
@@ -91,5 +89,19 @@ public class AuthService {
         user.setIsActive(true);
         user.setModifiedBy("ADMIN");
         userRepository.save(user);
+    }
+
+    public Map<String, String> uploadProfilePicture(Long userId, MultipartFile file) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        try {
+            String base64 = Base64.getEncoder().encodeToString(file.getBytes());
+            String dataUrl = "data:" + file.getContentType() + ";base64," + base64;
+            user.setProfilePicture(dataUrl);
+            userRepository.save(user);
+            return Map.of("profilePicture", dataUrl);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to upload image");
+        }
     }
 }

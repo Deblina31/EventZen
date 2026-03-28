@@ -70,14 +70,6 @@ public async Task<IActionResult> GetMy()
         [Authorize(Roles = "VENDOR,ADMIN")]
         public async Task<IActionResult> Add([FromBody] VenueDTO dto)
         {
-
-            var detectedRoles = User.FindAll("role").Select(c => c.Value);
-            Console.WriteLine($"Detected Roles: {string.Join(", ", detectedRoles)}");
-
-            if (!User.IsInRole("VENDOR")) {
-        return Forbid("System did not recognize the VENDOR role in the token.");
-    }
-
             var userId = GetUserId();
             var result = await _service.Add(dto, userId);
             return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);

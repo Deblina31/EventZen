@@ -92,4 +92,34 @@ public class EventService {
             return false;
         }
     }
+
+    @Transactional
+    public EventResponseDTO updateExpenses(Long id, Double amount, Long requesterId, boolean isAdmin) {
+        Event event = eventRepo.findByIdAndIsActiveTrue(id)
+                .orElseThrow(() -> new EntityNotFoundException("Event not found"));
+
+        if (!isAdmin && !event.getOrganizerId().equals(requesterId))
+            throw new AccessDeniedException("You can only update your own events");
+
+        double current = event.getCurrentExpenses() != null ? event.getCurrentExpenses() : 0.0;
+        event.setCurrentExpenses(current + amount);
+        event.setModifiedBy(String.valueOf(requesterId));
+        return EventMapper.toDTO(eventRepo.save(event));
+    }
+
+    @Transactional
+    public EventResponseDTO recordTicketSale(Long eventId, Double amount, String ticketType) {
+        Event event = eventRepo.findByIdAndIsActiveTrue(eventId)
+                .orElseThrow(() -> new EntityNotFoundException("Event not found"));
+
+        if (event.getSoldTickets() >= event.getCapacity()) {
+            throw new IllegalArgumentException("Event is fully booked");
+        }
+
+        event.setSoldTickets(event.getSoldTickets() + 1);
+        event.setEarnedRevenue(
+                (event.getEarnedRevenue() != null ? event.getEarnedRevenue() : 0.0) + amount
+        );
+        return EventMapper.toDTO(eventRepo.save(event));
+    }
 }

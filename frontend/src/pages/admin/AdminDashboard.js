@@ -163,17 +163,21 @@ const AdminDashboard = () => {
           <h2 className="section-title">Event Management</h2>
           <div className="table-wrapper">
             <table className="table">
-              <thead><tr><th>Name</th><th>Category</th><th>Start</th><th>Action</th></tr></thead>
-              <tbody>
-                {events.map(e => (
-                  <tr key={e.id}>
-                    <td>{e.name || e.title}</td>
-                    <td>{e.category ? <span className="badge badge-info">{e.category}</span> : "—"}</td>
-                    <td>{e.startDateTime ? new Date(e.startDateTime).toLocaleDateString() : "—"}</td>
-                    <td><button className="btn btn-danger btn-sm" onClick={() => handleDeleteEvent(e.id)}>Delete</button></td>
-                  </tr>
-                ))}
-              </tbody>
+              <thead>
+  <tr><th>Name</th><th>Category</th><th>Start</th><th>End</th><th>Ticket Price</th><th>Action</th></tr>
+</thead>
+<tbody>
+  {events.map(e => (
+    <tr key={e.id}>
+      <td>{e.name || e.title}</td>
+      <td>{e.category ? <span className="badge badge-info">{e.category}</span> : "—"}</td>
+      <td>{e.startDateTime ? new Date(e.startDateTime).toLocaleString() : "—"}</td>
+      <td>{e.endDateTime   ? new Date(e.endDateTime).toLocaleString()   : "—"}</td>
+      <td>{e.ticketPrice > 0 ? `₹${e.ticketPrice}` : "Free"}</td>
+      <td><button className="btn btn-danger btn-sm" onClick={() => handleDeleteEvent(e.id)}>Delete</button></td>
+    </tr>
+  ))}
+</tbody>
             </table>
           </div>
         </div>
@@ -184,17 +188,27 @@ const AdminDashboard = () => {
           <h2 className="section-title">Venue Management</h2>
           <div className="table-wrapper">
             <table className="table">
-              <thead><tr><th>Name</th><th>City</th><th>Capacity</th><th>Action</th></tr></thead>
-              <tbody>
-                {venues.map(v => (
-                  <tr key={v.id || v.Id}>
-                    <td>{v.name || v.Name}</td>
-                    <td>{v.city || v.City || "—"}</td>
-                    <td>{v.capacity || v.Capacity}</td>
-                    <td><button className="btn btn-danger btn-sm" onClick={() => handleDeleteVenue(v.id || v.Id)}>Delete</button></td>
-                  </tr>
-                ))}
-              </tbody>
+              <thead>
+  <tr><th>Name</th><th>City</th><th>Capacity</th><th>Amenities</th><th>Image</th><th>Action</th></tr>
+</thead>
+<tbody>
+  {venues.map(v => (
+    <tr key={v.id||v.Id}>
+      <td>{v.name||v.Name}</td>
+      <td>{v.city||v.City||"—"}</td>
+      <td>{v.capacity||v.Capacity}</td>
+      <td style={{ maxWidth:150, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+        {v.amenities||v.Amenities||"—"}
+      </td>
+      <td>
+        {(v.imageUrl||v.ImageUrl)
+          ? <img src={v.imageUrl||v.ImageUrl} alt="" style={{ width:40, height:30, objectFit:"cover", borderRadius:4 }} />
+          : "—"}
+      </td>
+      <td><button className="btn btn-danger btn-sm" onClick={() => handleDeleteVenue(v.id||v.Id)}>Delete</button></td>
+    </tr>
+  ))}
+</tbody>
             </table>
           </div>
         </div>
@@ -205,18 +219,23 @@ const AdminDashboard = () => {
           <h2 className="section-title">Booking Management</h2>
           <div className="table-wrapper">
             <table className="table">
-              <thead><tr><th>#</th><th>User ID</th><th>Event ID</th><th>Status</th><th>Payment</th></tr></thead>
-              <tbody>
-                {bookings.map(b => (
-                  <tr key={b.id}>
-                    <td>#{b.id}</td>
-                    <td>{b.userId}</td>
-                    <td>{b.eventId}</td>
-                    <td><StatusBadge status={b.status} /></td>
-                    <td><StatusBadge status={b.paymentStatus} /></td>
-                  </tr>
-                ))}
-              </tbody>
+              <thead>
+  <tr><th>#</th><th>User</th><th>Event</th><th>Ticket Type</th><th>Qty</th><th>Price</th><th>Status</th><th>Payment</th></tr>
+</thead>
+<tbody>
+  {bookings.map(b => (
+    <tr key={b.id}>
+      <td>#{b.id}</td>
+      <td>{b.userId}</td>
+      <td>{b.eventId}</td>
+      <td>{b.ticketType || "General"}</td>
+      <td>{b.quantity || 1}</td>
+      <td>{b.price > 0 ? `₹${Number(b.price).toLocaleString()}` : "Free"}</td>
+      <td><StatusBadge status={b.status} /></td>
+      <td><StatusBadge status={b.paymentStatus} /></td>
+    </tr>
+  ))}
+</tbody>
             </table>
           </div>
         </div>

@@ -18,10 +18,6 @@ public class JwtUtils {
     @Value("${jwt.expiration.ms}")
     private long jwtExpirationMs;
 
-//    private Key getSigningKey() {
-//        return Keys.hmacShaKeyFor(jwtSecret.getBytes());
-//    }
-
     private Key getSigningKey() {
         byte[] keyBytes = jwtSecret.getBytes(StandardCharsets.UTF_8);
         return Keys.hmacShaKeyFor(keyBytes);
@@ -60,5 +56,12 @@ public class JwtUtils {
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
+    }
+
+    public Long getUserIdFromToken(String token) {
+        Claims claims = parseClaims(token);
+        Object id = claims.get("userId");
+        if (id == null) return null;
+        return Long.valueOf(id.toString());
     }
 }

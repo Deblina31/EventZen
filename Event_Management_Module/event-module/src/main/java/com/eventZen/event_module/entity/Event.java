@@ -1,8 +1,11 @@
 package com.eventZen.event_module.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 
 @Entity
 @Table(name = "events")
@@ -22,10 +25,10 @@ public class Event {
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    @Column(nullable = false)
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm[:ss]")
     private LocalDateTime startDateTime;
 
-    @Column(nullable = false)
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm[:ss]")
     private LocalDateTime endDateTime;
 
     @Column(nullable = false)
@@ -61,4 +64,36 @@ public class Event {
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
     }
+
+    @Column(nullable = false)
+    @Builder.Default
+    private Double ticketPrice = 0.0;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private Integer capacity = 0;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private Integer soldTickets = 0;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private Double venueRent = 0.0;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private Double standardPrice = 0.0;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private Double vipPrice = 0.0;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private Double premiumPrice = 0.0;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private Double earnedRevenue = 0.0;
 }

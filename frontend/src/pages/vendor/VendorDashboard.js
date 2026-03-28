@@ -1,193 +1,263 @@
 import { useEffect, useState } from "react";
-import { getMyVenues, createVenue } from "../../services/venueService";
-import { getMyEvents, createEvent } from "../../services/eventService";
+import axios from "axios";
 import { toast } from "react-toastify";
-import StatusBadge from "../../components/StatusBadge";
+import { Link } from "react-router-dom";
+import { getMyVenues, createVenue, getAllVenues } from "../../services/venueService";
+import { getMyEvents, createEvent, addExpense, getAllEvents } from "../../services/eventService";
 
 const CATEGORIES = ["SOCIAL", "CORPORATE", "SPORTS", "TECH"];
 
 const VendorDashboard = () => {
-  const [venues,  setVenues]  = useState([]);
-  const [events,  setEvents]  = useState([]);
+  // ─── STATE MANAGEMENT ──────────────────────────────────────────────────
+  const [activeTab, setActiveTab] = useState("dashboard");
+  const [venues, setVenues] = useState([]);
+  const [events, setEvents] = useState([]);      // Vendor's own events
+  const [allEvents, setAllEvents] = useState([]); // All events on platform
+  const [allVenues, setAllVenues] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [venueForm, setVenueForm] = useState({ name: "", address: "", city: "", state: "", zipCode: "", capacity: "", description: "", amenities: "", imageUrl: "" });
-  const [eventForm, setEventForm] = useState({ name: "", description: "", startDateTime: "", endDateTime: "", venueId: "", category: "SOCIAL", totalBudget: "" });
-  
-  useEffect(() => { fetchAll(); }, []);
+
+  // Forms
+  const [eventForm, setEventForm] = useState({
+    name: "", description: "", startDate: "", startTime: "",
+    endDate: "", endTime: "", venueId: "", category: "SOCIAL",
+    totalBudget: "", venueRent: "", capacity: "",
+    standardPrice: "", vipPrice: "", premiumPrice: ""
+  });
+
+  const [venueForm, setVenueForm] = useState({ 
+    name: "", address: "", city: "", state: "", zipCode: "", 
+    capacity: "", description: "", amenities: "", imageUrl: "" 
+  });
+
+  const [expenseForm, setExpenseForm] = useState({ eventId: "", amount: "" });
+  const [availForm, setAvailForm] = useState({ venueId: "", date: "", startTime: "", endTime: "" });
+
+  // ─── DATA FETCHING ─────────────────────────────────────────────────────
+  useEffect(() => {
+    fetchAll();
+  }, []);
 
   const fetchAll = async () => {
     setLoading(true);
     try {
-      const [vRes, eRes] = await Promise.all([getMyVenues(), getMyEvents()]);
+      const [vRes, eRes, allVRes, allERes] = await Promise.all([
+        getMyVenues(),
+        getMyEvents(),
+        getAllVenues(),
+        getAllEvents()
+      ]);
       setVenues(Array.isArray(vRes.data) ? vRes.data : []);
       setEvents(Array.isArray(eRes.data) ? eRes.data : []);
-    } catch { toast.error("Failed to load data"); }
-    finally  { setLoading(false); }
+      setAllVenues(Array.isArray(allVRes.data) ? allVRes.data : []);
+      setAllEvents(Array.isArray(allERes.data) ? allERes.data : []);
+    } catch (err) {
+      toast.error("Failed to load dashboard data");
+    } finally {
+      setLoading(false);
+    }
   };
 
+  // ─── HANDLERS ──────────────────────────────────────────────────────────
   const handleAddVenue = async (e) => {
     e.preventDefault();
     try {
       await createVenue({ ...venueForm, capacity: parseInt(venueForm.capacity) });
       toast.success("Venue added!");
-      setVenueForm({ name: "", address: "", city: "", state: "", zipCode: "", capacity: "", description: "" });
+      setVenueForm({ name: "", address: "", city: "", state: "", zipCode: "", capacity: "", description: "", amenities: "", imageUrl: "" });
       fetchAll();
-    } catch (err) { toast.error(err.response?.data?.error || "Failed to add venue"); }
+    } catch (err) {
+      toast.error("Failed to add venue");
+    }
   };
 
   const handleAddEvent = async (e) => {
     e.preventDefault();
+    const startDateTime = `${eventForm.startDate}T${eventForm.startTime || "09:00"}:00`;
+    const endDateTime = `${eventForm.endDate || eventForm.startDate}T${eventForm.endTime || "18:00"}:00`;
+
     try {
-      await createEvent({ ...eventForm, venueId: parseInt(eventForm.venueId), totalBudget: parseFloat(eventForm.totalBudget) });
-      toast.success("Event created!");
-      setEventForm({ name: "", description: "", startDateTime: "", endDateTime: "", venueId: "", category: "SOCIAL", totalBudget: "" });
+      await createEvent({
+        ...eventForm,
+        startDateTime,
+        endDateTime,
+        venueId: parseInt(eventForm.venueId),
+        totalBudget: parseFloat(eventForm.totalBudget || 0),
+        venueRent: parseFloat(eventForm.venueRent || 0),
+        capacity: parseInt(eventForm.capacity || 0),
+        standardPrice: parseFloat(eventForm.standardPrice || 0),
+        vipPrice: parseFloat(eventForm.vipPrice || 0),
+        premiumPrice: parseFloat(eventForm.premiumPrice || 0),
+      });
+      toast.success("Event launched!");
+      setEventForm({ name: "", description: "", startDate: "", startTime: "", endDate: "", endTime: "", venueId: "", category: "SOCIAL", totalBudget: "", venueRent: "", capacity: "", standardPrice: "", vipPrice: "", premiumPrice: "" });
       fetchAll();
-    } catch (err) { toast.error(err.response?.data?.error || "Failed to create event"); }
+    } catch (err) {
+      toast.error("Failed to create event");
+    }
   };
 
+  const handleAddExpense = async (e) => {
+    e.preventDefault();
+    try {
+      await addExpense(expenseForm.eventId, parseFloat(expenseForm.amount));
+      toast.success("Expense recorded!");
+      setExpenseForm({ eventId: "", amount: "" });
+      fetchAll();
+    } catch (err) {
+      toast.error("Failed to record expense");
+    }
+  };
 
-  const totalBudget  = events.reduce((s, e) => s + (e.totalBudget || 0), 0);
-  const totalSpent   = events.reduce((s, e) => s + (e.currentExpenses || 0), 0);
+  // Calculations
+  const totalBudgetVal = events.reduce((s, e) => s + (e.totalBudget || 0), 0);
+  const totalSpentVal = events.reduce((s, e) => s + (e.currentExpenses || 0), 0);
+
+  if (loading) return <div className="p-10">Updating Dashboard...</div>;
 
   return (
-    <div className="page-wrapper">
-      <h1 className="page-title">Vendor Dashboard</h1>
+    <div className="page-wrapper" style={{ padding: "20px" }}>
+      <h1 className="page-title">Vendor Central</h1>
 
-      <div className="grid-4" style={{ marginBottom: "2rem" }}>
-        {[
-          { label: "My Venues",  value: venues.length,  cls: "stat-blue" },
-          { label: "My Events",  value: events.length,  cls: "stat-green" },
-          { label: "Total Budget",  value: `₹${totalBudget.toLocaleString()}`, cls: "stat-amber" },
-          { label: "Total Spent",   value: `₹${totalSpent.toLocaleString()}`,  cls: "stat-red" },
-        ].map(s => (
-          <div className={`stat-card ${s.cls}`} key={s.label}>
-            <div className="stat-value">{s.value}</div>
-            <div className="stat-label">{s.label}</div>
-          </div>
+      {/* ── STATS BAR ── */}
+      <div className="grid-4" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "1rem", marginBottom: "1.5rem" }}>
+        <div className="stat-card stat-blue"><div className="stat-value">{venues.length}</div><div className="stat-label">My Venues</div></div>
+        <div className="stat-card stat-green"><div className="stat-value">{events.length}</div><div className="stat-label">My Events</div></div>
+        <div className="stat-card stat-amber"><div className="stat-value">₹{totalBudgetVal.toLocaleString()}</div><div className="stat-label">Total Budget</div></div>
+        <div className="stat-card stat-red"><div className="stat-value">₹{totalSpentVal.toLocaleString()}</div><div className="stat-label">Total Spent</div></div>
+      </div>
+
+      {/* ── TAB NAVIGATION ── */}
+      <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1.5rem", borderBottom: "1px solid #e2e8f0", paddingBottom: "0.75rem" }}>
+        {[{ key: "dashboard", label: "📊 Dashboard" }, { key: "all-events", label: "🌐 All Events" }, { key: "expenses", label: "💸 Expenses" }].map(t => (
+          <button key={t.key} className={`btn btn-sm ${activeTab === t.key ? "btn-primary" : "btn-outline"}`} onClick={() => setActiveTab(t.key)}>
+            {t.label}
+          </button>
         ))}
       </div>
 
-      {loading && <p className="text-muted">Loading...</p>}
-
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.5rem" }}>
-
-        <div>
-          <h2 className="section-title">My Venues</h2>
-          <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem", marginBottom: "1.5rem" }}>
-            {venues.length === 0 && <div className="empty-state"><p>No venues yet</p></div>}
+      {/* ── TAB CONTENT: DASHBOARD ── */}
+      {activeTab === "dashboard" && (
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "2rem" }}>
+          {/* Left: My Venues List & Form */}
+          <div>
+            <h2 className="section-title">My Venues</h2>
             {venues.map(v => (
-              <div className="card" key={v.id || v.Id} style={{ padding: "1rem" }}>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p style={{ fontWeight: 600, fontSize: "0.9rem" }}>{v.name || v.Name}</p>
-                    <p style={{ fontSize: "0.8rem", color: "var(--gray-400)" }}>{v.city || v.City} · Cap: {v.capacity || v.Capacity}</p>
+              <div className="card" key={v.id || v.Id} style={{ padding: "1rem", marginBottom: "0.5rem" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <div><strong>{v.name}</strong><p style={{ fontSize: "0.8rem" }}>{v.city} · Cap: {v.capacity}</p></div>
+                  <Link to={`/vendor/edit/${v.id}`} className="btn btn-sm btn-outline">Edit</Link>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Right: My Events Management */}
+          <div>
+            <h2 className="section-title">My Event Performance</h2>
+            {events.map(ev => {
+              const balance = (ev.earnedRevenue || 0) - (ev.currentExpenses || 0);
+              const inRed = balance < 0;
+              return (
+                <div className="card" key={ev.id} style={{ padding: "1rem", marginBottom: "1rem" }}>
+                  <div className="flex justify-between">
+                    <strong>{ev.name}</strong>
+                    <span className="badge badge-info">{ev.category}</span>
                   </div>
-                  <a href={`/vendor/edit/${v.id || v.Id}`} className="btn btn-outline btn-sm">Edit</a>
+                  <div style={{ fontSize: "0.8rem", margin: "10px 0" }}>
+                    <p>📤 Spent: ₹{ev.currentExpenses || 0} / 📥 Earned: ₹{ev.earnedRevenue || 0}</p>
+                    <div style={{ padding: "5px 10px", borderRadius: "4px", background: inRed ? "#fee2e2" : "#dcfce7", color: inRed ? "#b91c1c" : "#15803d", fontWeight: "bold" }}>
+                      Balance: ₹{balance} {inRed ? "🔴" : "🟢"}
+                    </div>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="card">
-            <h3 className="section-title">Add New Venue</h3>
-            <form onSubmit={handleAddVenue}>
-              {[
-                { label: "Venue Name", name: "name",        type: "text" },
-                { label: "Address",    name: "address",     type: "text" },
-                { label: "City",       name: "city",        type: "text" },
-                { label: "State",      name: "state",       type: "text" },
-                { label: "Zip Code",   name: "zipCode",     type: "text" },
-                { label: "Capacity",   name: "capacity",    type: "number" },
-              ].map(f => (
-                <div className="form-group" key={f.name}>
-                  <label className="form-label">{f.label}</label>
-                  <input className="form-input" type={f.type} placeholder={f.label}
-                    value={venueForm[f.name]}
-                    onChange={e => setVenueForm({ ...venueForm, [f.name]: e.target.value })} />
-                </div>
-              ))}
-              <div className="form-group">
-                <label className="form-label">Description</label>
-                <textarea className="form-input" rows={2} value={venueForm.description}
-                  onChange={e => setVenueForm({ ...venueForm, description: e.target.value })} />
-              </div>
-              <button className="btn btn-primary w-full" type="submit">Add Venue</button>
-            </form>
+              );
+            })}
           </div>
         </div>
+      )}
 
+      {/* ── TAB CONTENT: ALL EVENTS ── */}
+      {activeTab === "all-events" && (
         <div>
-          <h2 className="section-title">My Events</h2>
-          <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem", marginBottom: "1.5rem" }}>
-            {events.length === 0 && <div className="empty-state"><p>No events yet</p></div>}
-            {events.map(ev => (
-              <div className="card" key={ev.id} style={{ padding: "1rem" }}>
-                <div className="flex items-center justify-between" style={{ marginBottom: "0.5rem" }}>
-                  <p style={{ fontWeight: 600, fontSize: "0.9rem" }}>{ev.name || ev.title}</p>
-                  {ev.category && <span className="badge badge-info">{ev.category}</span>}
-                </div>
-                <div style={{ fontSize: "0.8rem", color: "var(--gray-400)" }}>
-                  <p>Budget: Rs {(ev.totalBudget || 0).toLocaleString()} · Spent: Rs{(ev.currentExpenses || 0).toLocaleString()}</p>
-                  <p style={{ color: ev.remainingBudget < 0 ? "var(--danger)" : "var(--success)" }}>
-                    Remaining: Rs {(ev.remainingBudget || 0).toLocaleString()}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
+          <h2 className="section-title">Global Platform Events</h2>
+          <div className="grid-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.5rem" }}>
+            {allEvents.map(ev => {
+              const venue = allVenues.find(v => 
+                (v.id || v.Id)?.toString() === ev.venueId?.toString()
+              );
+              const isOwn = events.some(e => e.id === ev.id);
 
-          <div className="card">
-            <h3 className="section-title">Create Event</h3>
-            <form onSubmit={handleAddEvent}>
-              <div className="form-group">
-                <label className="form-label">Event Name</label>
-                <input className="form-input" placeholder="Event name" value={eventForm.name}
-                  onChange={e => setEventForm({ ...eventForm, name: e.target.value })} />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Description</label>
-                <textarea className="form-input" rows={2} value={eventForm.description}
-                  onChange={e => setEventForm({ ...eventForm, description: e.target.value })} />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Start Date & Time</label>
-                <input className="form-input" type="datetime-local" value={eventForm.startDateTime}
-                  onChange={e => setEventForm({ ...eventForm, startDateTime: e.target.value })} />
-              </div>
-              <div className="form-group">
-                <label className="form-label">End Date & Time</label>
-                <input className="form-input" type="datetime-local" value={eventForm.endDateTime}
-                  onChange={e => setEventForm({ ...eventForm, endDateTime: e.target.value })} />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Venue</label>
-                <select className="form-select" value={eventForm.venueId}
-                  onChange={e => setEventForm({ ...eventForm, venueId: e.target.value })}>
-                  <option value="">Select a venue</option>
-                  {venues.map(v => (
-                    <option key={v.id || v.Id} value={v.id || v.Id}>
-                      {v.name || v.Name} — {v.city || v.City}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="form-group">
-                <label className="form-label">Category</label>
-                <select className="form-select" value={eventForm.category}
-                  onChange={e => setEventForm({ ...eventForm, category: e.target.value })}>
-                  {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-                </select>
-              </div>
-              <div className="form-group">
-                <label className="form-label">Total Budget (Rs)</label>
-                <input className="form-input" type="number" placeholder="0" value={eventForm.totalBudget}
-                  onChange={e => setEventForm({ ...eventForm, totalBudget: e.target.value })} />
-              </div>
-              <button className="btn btn-primary w-full" type="submit">Create Event</button>
-            </form>
+              return (
+                <div className="card" key={ev.id} style={{ 
+                  padding: "1.25rem", 
+                  borderLeft: isOwn ? "5px solid var(--primary)" : "5px solid #cbd5e1",
+                  position: "relative"
+                }}>
+                  <div className="flex justify-between items-start">
+                    <h3 style={{ margin: 0, fontSize: "1.1rem" }}>{ev.name || ev.title}</h3>
+                    {isOwn && <span className="badge badge-info">Your Event</span>}
+                  </div>
+
+                  <div style={{ marginTop: "10px", display: "flex", alignItems: "center", gap: "5px" }}>
+                    <span style={{ fontSize: "1.2rem" }}>🏛️</span>
+                    <div>
+                      <p style={{ margin: 0, fontWeight: "600", color: "var(--gray-800)" }}>
+                        {venue ? (venue.name || venue.Name) : "Unknown Venue"}
+                      </p>
+                      <p style={{ margin: 0, fontSize: "0.75rem", color: "var(--gray-400)" }}>
+                        {venue ? `${venue.city}, ${venue.state || ''}` : `ID: ${ev.venueId}`}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div style={{ marginTop: "12px", borderTop: "1px dashed #eee", paddingTop: "10px" }}>
+                    <p style={{ fontSize: "0.8rem", color: "var(--gray-600)" }}>
+                      📅 {ev.startDateTime ? new Date(ev.startDateTime).toLocaleDateString() : "Date TBD"}
+                    </p>
+                    <div className="flex gap-3" style={{ marginTop: "8px" }}>
+                      <span className="badge badge-gray">Std: ₹{ev.standardPrice || 0}</span>
+                      <span className="badge badge-gray">VIP: ₹{ev.vipPrice || 0}</span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
-      </div>
+      )}
+
+      {/* ── TAB CONTENT: EXPENSES ── */}
+      {activeTab === "expenses" && (
+        <div className="card" style={{ maxWidth: "500px", margin: "0 auto", padding: "1.5rem" }}>
+          <h2 className="section-title">Track Event Expense</h2>
+          <form onSubmit={handleAddExpense}>
+            <div className="form-group mb-3">
+              <label>Select Event</label>
+              <select 
+                className="form-select" 
+                required 
+                value={expenseForm.eventId} 
+                onChange={e => setExpenseForm({...expenseForm, eventId: e.target.value})}
+              >
+                <option value="">Choose an event...</option>
+                {events.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
+              </select>
+            </div>
+            <div className="form-group mb-4">
+              <label>Amount (₹)</label>
+              <input 
+                className="form-input" 
+                type="number" 
+                placeholder="Enter expense amount" 
+                required 
+                value={expenseForm.amount} 
+                onChange={e => setExpenseForm({...expenseForm, amount: e.target.value})} 
+              />
+            </div>
+            <button className="btn btn-primary w-full" type="submit">Update Budget</button>
+          </form>
+        </div>
+      )}
     </div>
   );
 };

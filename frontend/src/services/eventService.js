@@ -28,3 +28,13 @@ export const updateEvent = (id, data) =>
 
 export const deleteEvent = (id) =>
   axios.delete(`${API.EVENTS}/${id}`, { headers: authHeaders() });
+
+export const addExpense = (id, amount) =>
+  axios.patch(`${API.EVENTS}/${id}/expenses`, { amount }, { headers: authHeaders() });
+
+
+export const recordTicketSale = (id, amount, ticketType) =>
+  axios.patch(`${API.EVENTS}/${id}/ticket-sale`,
+    { amount, ticketType },
+    { headers: authHeaders() }
+  );
