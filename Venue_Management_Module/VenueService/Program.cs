@@ -9,7 +9,6 @@ using VenueService.Services;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
-// clear default claim mappings — stops .NET remapping "role" to long URL
 JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
 JwtSecurityTokenHandler.DefaultOutboundClaimTypeMap.Clear();
 
@@ -61,11 +60,9 @@ builder.Services.AddAuthentication(options =>
             var identity = context.Principal?.Identity as ClaimsIdentity;
             if (identity == null) return Task.CompletedTask;
 
-            // find the "role" claim Spring Boot put in the token
             var roleClaim = identity.FindFirst("role");
             if (roleClaim != null)
             {
-                // add it as ClaimTypes.Role so [Authorize(Roles=...)] works
                 identity.AddClaim(new Claim(ClaimTypes.Role, roleClaim.Value));
             }
 
@@ -115,7 +112,6 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 builder.Services.AddScoped<IVenueRepository, VenueRepository>();
 builder.Services.AddScoped<VenueServiceImpl>();
-// ── REMOVED MyClaimsTransformation entirely ──────────────
 
 var app = builder.Build();
 

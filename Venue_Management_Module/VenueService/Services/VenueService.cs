@@ -89,48 +89,7 @@ namespace VenueService.Services
 
             await _repo.Save();
         }
-        public async Task<List<VenueAvailabilityResponseDTO>> GetAvailability(int venueId)
-            => (await _repo.GetAvailability(venueId)).Select(MapAvailabilityToResponse).ToList();
-
-        public async Task<VenueAvailabilityResponseDTO> AddAvailability(
-            int venueId, VenueAvailabilityRequestDTO dto, int requesterId, string role)
-        {
-            var venue = await _repo.GetById(venueId)
-                ?? throw new KeyNotFoundException($"Venue {venueId} not found");
-
-            if (role == "VENDOR" && venue.OwnerId != requesterId)
-                throw new UnauthorizedAccessException("You can only add availability to your own venues");
-
-            var slot = new VenueAvailability
-            {
-                VenueId     = venueId,
-                Date        = dto.Date,
-                StartTime   = dto.StartTime,
-                EndTime     = dto.EndTime,
-                IsAvailable = dto.IsAvailable,
-                UpdatedAt   = DateTime.UtcNow
-            };
-
-            await _repo.AddAvailability(slot);
-            await _repo.Save();
-            return MapAvailabilityToResponse(slot);
-        }
-
-        public async Task DeleteAvailability(int venueId, int slotId,
-            int requesterId, string role)
-        {
-            var slot = await _repo.GetAvailabilitySlot(slotId)
-                ?? throw new KeyNotFoundException($"Availability slot {slotId} not found");
-
-            if (slot.VenueId != venueId)
-                throw new KeyNotFoundException("Slot does not belong to this venue");
-
-            if (role == "VENDOR" && slot.Venue.OwnerId != requesterId)
-                throw new UnauthorizedAccessException("You can only delete slots for your own venues");
-
-            await _repo.DeleteAvailability(slotId);
-            await _repo.Save();
-        }
+        
         private static VenueResponseDTO MapToResponse(Venue v) => new()
         {
             Id          = v.Id,
@@ -149,16 +108,5 @@ namespace VenueService.Services
             UpdatedAt   = v.UpdatedAt
         };
 
-        private static VenueAvailabilityResponseDTO MapAvailabilityToResponse(
-            VenueAvailability a) => new()
-        {
-            Id          = a.Id,
-            VenueId     = a.VenueId,
-            Date        = a.Date,
-            StartTime   = a.StartTime,
-            EndTime     = a.EndTime,
-            IsAvailable = a.IsAvailable,
-            UpdatedAt   = a.UpdatedAt
-        };
     }
 }

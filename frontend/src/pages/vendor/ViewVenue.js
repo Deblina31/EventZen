@@ -4,11 +4,11 @@ import { getVenueById, getVenueAvailability } from "../../services/venueService"
 import { toast } from "react-toastify";
 
 const ViewVenue = () => {
-  const { id }       = useParams();
-  const navigate     = useNavigate();
-  const [venue, setVenue]             = useState(null);
-  const [slots, setSlots]             = useState([]);
-  const [loading, setLoading]         = useState(true);
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const [venue, setVenue] = useState(null);
+  const [slots, setSlots] = useState([]);
+  const [loading, setLoading]= useState(true);
 
   useEffect(() => {
     Promise.all([getVenueById(id), getVenueAvailability(id)])
@@ -44,7 +44,7 @@ const ViewVenue = () => {
           <div><span className="text-muted">Address</span><p>{[v.address || v.Address, v.city || v.City, v.state || v.State, v.zipCode || v.ZipCode].filter(Boolean).join(", ")}</p></div>
           <div><span className="text-muted">Capacity</span><p>{v.capacity || v.Capacity} people</p></div>
           <div><span className="text-muted">Amenities</span><p>{v.amenities || v.Amenities || "—"}</p></div>
-          <div><span className="text-muted">Status</span><p>{(v.isActive || v.IsActive) ? "✅ Active" : "❌ Inactive"}</p></div>
+          <div><span className="text-muted">Status</span><p>{(v.isActive || v.IsActive) ? "Active" : "Inactive"}</p></div>
         </div>
         {(v.description || v.Description) && (
           <div style={{ marginTop: "0.75rem", fontSize: "0.875rem" }}>

@@ -5,7 +5,6 @@ import { submitFeedback, getFeedbackByEvent } from "../../services/feedbackServi
 import StatusBadge from "../../components/StatusBadge";
 import { toast } from "react-toastify";
 
-// ── Star Rating ───────────────────────────────────────────
 const StarRating = ({ rating, onRate }) => (
   <div style={{ display:"flex", gap:"0.25rem" }}>
     {[1,2,3,4,5].map(n => (
@@ -20,7 +19,6 @@ const StarRating = ({ rating, onRate }) => (
   </div>
 );
 
-// ── Feedback Modal ────────────────────────────────────────
 const FeedbackModal = ({ booking, onClose, onSubmitted }) => {
   const [rating,  setRating]  = useState(5);
   const [comment, setComment] = useState("");
@@ -30,7 +28,7 @@ const FeedbackModal = ({ booking, onClose, onSubmitted }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (comment && comment.trim().length > 0 && comment.trim().length < 10) {
-      setCharErr("Comment must be at least 10 characters or leave it blank");
+      setCharErr("Comment must be at least 10 characters");
       return;
     }
     setCharErr("");
@@ -41,7 +39,7 @@ const FeedbackModal = ({ booking, onClose, onSubmitted }) => {
         rating,
         comment: comment.trim() || undefined
       });
-      toast.success("✅ Feedback submitted! Thank you.");
+      toast.success("Feedback submitted! Thank you.");
       onSubmitted(booking.eventId);
       onClose();
     } catch (err) {
@@ -71,7 +69,7 @@ const FeedbackModal = ({ booking, onClose, onSubmitted }) => {
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label className="form-label">Your Rating *</label>
+            <label className="form-label">Your Rating </label>
             <StarRating rating={rating} onRate={setRating} />
             <p style={{ fontSize:"0.75rem", color:"var(--gray-400)", marginTop:"0.25rem" }}>
               {["","Poor","Fair","Good","Very Good","Excellent"][rating]}
@@ -117,12 +115,10 @@ const FeedbackModal = ({ booking, onClose, onSubmitted }) => {
   );
 };
 
-// ── Main Component ────────────────────────────────────────
 const MyBookings = () => {
   const [bookings,      setBookings]      = useState([]);
   const [loading,       setLoading]       = useState(false);
   const [feedbackModal, setFeedbackModal] = useState(null);
-  // track which eventIds this user already gave feedback for
   const [feedbackGiven, setFeedbackGiven] = useState(new Set());
 
   useEffect(() => { fetchBookings(); }, []);
@@ -142,7 +138,6 @@ const MyBookings = () => {
       }));
       setBookings(enriched);
 
-      // check which confirmed events already have feedback from this user
       const confirmedIds = [...new Set(
         enriched.filter(b => b.status === "confirmed").map(b => b.eventId)
       )];
@@ -151,7 +146,6 @@ const MyBookings = () => {
         confirmedIds.map(id => getFeedbackByEvent(id))
       );
 
-      // get userId from token
       const token   = localStorage.getItem("token");
       const payload = token ? JSON.parse(atob(token.split(".")[1])) : {};
       const myId    = payload.userId;
@@ -182,7 +176,6 @@ const MyBookings = () => {
     } catch { toast.error("Failed to cancel"); }
   };
 
-  // called after successful feedback submission
   const handleFeedbackSubmitted = (eventId) => {
     setFeedbackGiven(prev => new Set([...prev, eventId]));
   };
@@ -208,7 +201,6 @@ const MyBookings = () => {
           <div className="card" key={b.id}
             style={{ borderLeft:`3px solid ${statusColor[b.status] || "var(--gray-200)"}` }}>
 
-            {/* Title row */}
             <div className="flex items-center justify-between"
               style={{ marginBottom:"0.75rem" }}>
               <h3 style={{ fontSize:"1rem", fontWeight:600 }}>
@@ -217,27 +209,25 @@ const MyBookings = () => {
               <StatusBadge status={b.status} />
             </div>
 
-            {/* Details */}
             <div style={{ fontSize:"0.82rem", color:"var(--gray-600)",
               marginBottom:"1rem", display:"flex", flexDirection:"column", gap:"0.3rem" }}>
-              <p>🗓 {b.event?.startDateTime
+              <p>{b.event?.startDateTime
                 ? new Date(b.event.startDateTime).toLocaleString()
                 : "Date TBD"}</p>
-              <p>🎟 {b.ticketType || "General"} ticket</p>
-              <p>🔢 Qty: {b.quantity || 1}</p>
-              <p>💰 {parseFloat(b.price) > 0
-                ? `₹${parseFloat(b.price).toLocaleString()}`
+              <p>{b.ticketType || "General"} ticket</p>
+              <p>Qty: {b.quantity || 1}</p>
+              <p>{parseFloat(b.price) > 0
+                ? `Rs.${parseFloat(b.price).toLocaleString()}`
                 : "Free"}
               </p>
               <div style={{ display:"flex", alignItems:"center", gap:"0.5rem" }}>
-                <span>💳</span>
+                <span></span>
                 <StatusBadge status={b.paymentStatus || "pending"} />
               </div>
-              <p>📅 Booked: {new Date(b.registrationDate || b.createdAt)
+              <p>Booked: {new Date(b.registrationDate || b.createdAt)
                 .toLocaleDateString()}</p>
             </div>
 
-            {/* Actions */}
             <div style={{ display:"flex", gap:"0.5rem", flexWrap:"wrap" }}>
               {b.status !== "cancelled" && (
                 <button className="btn btn-danger btn-sm"
@@ -249,14 +239,14 @@ const MyBookings = () => {
               {b.status === "confirmed" && !feedbackGiven.has(b.eventId) && (
                 <button className="btn btn-outline btn-sm"
                   onClick={() => setFeedbackModal(b)}>
-                  ⭐ Rate Event
+                  Rate Event
                 </button>
               )}
 
               {b.status === "confirmed" && feedbackGiven.has(b.eventId) && (
                 <span style={{ fontSize:"0.78rem", color:"var(--success)",
                   display:"flex", alignItems:"center", gap:"0.25rem" }}>
-                  ✅ Feedback given
+                  Feedback given
                 </span>
               )}
             </div>

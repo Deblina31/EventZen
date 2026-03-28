@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getMyVenues, deleteVenue, getVenueAvailability } from "../../services/venueService";
+import { getMyVenues, deleteVenue} from "../../services/venueService";
 import { toast } from "react-toastify";
 
 const MyVenues = () => {
@@ -51,7 +51,6 @@ const MyVenues = () => {
               </p>
             </div>
             <div style={{ display: "flex", gap: "0.5rem" }}>
-              <button className="btn btn-outline btn-sm" onClick={() => navigate(`/vendor/view/${v.id || v.Id}`)}>View</button>
               <button className="btn btn-primary btn-sm"  onClick={() => navigate(`/vendor/edit/${v.id || v.Id}`)}>Edit</button>
               <button className="btn btn-danger btn-sm"   onClick={() => handleDelete(v.id || v.Id)}>Delete</button>
             </div>

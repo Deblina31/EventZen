@@ -39,7 +39,5 @@ namespace VenueService.Models
         public DateTime CreatedAt { get; set; }= DateTime.UtcNow;
         public DateTime UpdatedAt { get; set; }= DateTime.UtcNow;
         public string? ModifiedBy { get; set; }
-
-        public ICollection<VenueAvailability> Availabilities { get; set; } = new List<VenueAvailability>();
     }
 }

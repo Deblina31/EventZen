@@ -9,10 +9,5 @@ namespace VenueService.Repositories
         Task<List<Venue>> GetByVendor(int ownerId);
         Task Add(Venue venue);
         Task Save();
-
-        Task<List<VenueAvailability>> GetAvailability(int venueId);
-        Task<VenueAvailability?> GetAvailabilitySlot(int slotId);
-        Task AddAvailability(VenueAvailability slot);
-        Task DeleteAvailability(int slotId);
     }
 }

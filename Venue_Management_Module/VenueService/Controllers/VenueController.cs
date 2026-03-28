@@ -17,17 +17,15 @@ namespace VenueService.Controllers
             _service = service;
         }
 
-        // private int GetUserId()
-        //     => int.Parse(User.FindFirst("userId")?.Value ?? "0");
 
         private int GetUserId()
-{
-    var claim = User.FindFirst("userId")?.Value;
-    return int.TryParse(claim, out int id) ? id : 0;
-}
+        {
+            var claim = User.FindFirst("userId")?.Value;
+            return int.TryParse(claim, out int id) ? id : 0;
+        }
 
-       private string GetRole()
-    => User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? string.Empty;
+        private string GetRole()
+     => User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? string.Empty;
 
         //GET all 
         [HttpGet]
@@ -39,31 +37,15 @@ namespace VenueService.Controllers
         public async Task<IActionResult> GetById(int id)
             => Ok(await _service.GetById(id));
 
-        // //GET their created venues
-        // [HttpGet("my")]
-        // [Authorize(Roles = "VENDOR,ADMIN")]
-        // public async Task<IActionResult> GetMy()
-        // {
-        //     var userId = GetUserId();
-        //     var role   = GetRole();
-
-        //     //all venues for admin
-        //     if (role == "ADMIN")
-        //         return Ok(await _service.GetAll());
-
-        //     return Ok(await _service.GetByVendor(userId));
-        // }
-
         [HttpGet("my")]
-[Authorize(Roles = "VENDOR,ADMIN")]
-public async Task<IActionResult> GetMy()
-{
-    var userId = GetUserId();
-    var allVenues = await _service.GetAll();
-    
-    // We return all, but the frontend will check v.ownerId === currentUserId
-    return Ok(allVenues); 
-}
+        [Authorize(Roles = "VENDOR,ADMIN")]
+        public async Task<IActionResult> GetMy()
+        {
+            var userId = GetUserId();
+            var allVenues = await _service.GetAll();
+
+            return Ok(allVenues);
+        }
 
         //POST/ Create a new venue
         [HttpPost]
@@ -81,7 +63,7 @@ public async Task<IActionResult> GetMy()
         public async Task<IActionResult> Update(int id, [FromBody] VenueDTO dto)
         {
             var userId = GetUserId();
-            var role   = GetRole();
+            var role = GetRole();
             var result = await _service.Update(id, dto, userId, role);
             return Ok(result);
         }
@@ -92,7 +74,7 @@ public async Task<IActionResult> GetMy()
         public async Task<IActionResult> Delete(int id)
         {
             var userId = GetUserId();
-            var role   = GetRole();
+            var role = GetRole();
             await _service.Delete(id, userId, role);
             return NoContent();
         }

@@ -53,7 +53,6 @@ const Navbar = () => {
       </ul>
 
       <div className="nav-right" style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-        {/* Profile Link Section */}
         {role && (
           <span
             onClick={() => navigate("/profile")}
@@ -71,7 +70,6 @@ const Navbar = () => {
           </span>
         )}
 
-        {/* Auth Buttons */}
         {role ? (
           <button className="btn btn-outline btn-sm" onClick={handleLogout}>
             Logout

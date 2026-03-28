@@ -1,22 +1,19 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
 import { toast } from "react-toastify";
 import { Link } from "react-router-dom";
 import { getMyVenues, createVenue, getAllVenues } from "../../services/venueService";
 import { getMyEvents, createEvent, addExpense, getAllEvents } from "../../services/eventService";
+import { TrendingUp, TrendingDown} from "lucide-react";
 
-const CATEGORIES = ["SOCIAL", "CORPORATE", "SPORTS", "TECH"];
 
 const VendorDashboard = () => {
-  // ─── STATE MANAGEMENT ──────────────────────────────────────────────────
   const [activeTab, setActiveTab] = useState("dashboard");
   const [venues, setVenues] = useState([]);
-  const [events, setEvents] = useState([]);      // Vendor's own events
-  const [allEvents, setAllEvents] = useState([]); // All events on platform
+  const [events, setEvents] = useState([]);     
+  const [allEvents, setAllEvents] = useState([]); 
   const [allVenues, setAllVenues] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // Forms
   const [eventForm, setEventForm] = useState({
     name: "", description: "", startDate: "", startTime: "",
     endDate: "", endTime: "", venueId: "", category: "SOCIAL",
@@ -30,9 +27,7 @@ const VendorDashboard = () => {
   });
 
   const [expenseForm, setExpenseForm] = useState({ eventId: "", amount: "" });
-  const [availForm, setAvailForm] = useState({ venueId: "", date: "", startTime: "", endTime: "" });
-
-  // ─── DATA FETCHING ─────────────────────────────────────────────────────
+  
   useEffect(() => {
     fetchAll();
   }, []);
@@ -57,7 +52,6 @@ const VendorDashboard = () => {
     }
   };
 
-  // ─── HANDLERS ──────────────────────────────────────────────────────────
   const handleAddVenue = async (e) => {
     e.preventDefault();
     try {
@@ -108,7 +102,6 @@ const VendorDashboard = () => {
     }
   };
 
-  // Calculations
   const totalBudgetVal = events.reduce((s, e) => s + (e.totalBudget || 0), 0);
   const totalSpentVal = events.reduce((s, e) => s + (e.currentExpenses || 0), 0);
 
@@ -118,7 +111,6 @@ const VendorDashboard = () => {
     <div className="page-wrapper" style={{ padding: "20px" }}>
       <h1 className="page-title">Vendor Central</h1>
 
-      {/* ── STATS BAR ── */}
       <div className="grid-4" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "1rem", marginBottom: "1.5rem" }}>
         <div className="stat-card stat-blue"><div className="stat-value">{venues.length}</div><div className="stat-label">My Venues</div></div>
         <div className="stat-card stat-green"><div className="stat-value">{events.length}</div><div className="stat-label">My Events</div></div>
@@ -126,19 +118,16 @@ const VendorDashboard = () => {
         <div className="stat-card stat-red"><div className="stat-value">₹{totalSpentVal.toLocaleString()}</div><div className="stat-label">Total Spent</div></div>
       </div>
 
-      {/* ── TAB NAVIGATION ── */}
       <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1.5rem", borderBottom: "1px solid #e2e8f0", paddingBottom: "0.75rem" }}>
-        {[{ key: "dashboard", label: "📊 Dashboard" }, { key: "all-events", label: "🌐 All Events" }, { key: "expenses", label: "💸 Expenses" }].map(t => (
+        {[{ key: "dashboard", label: "Dashboard" }, { key: "all-events", label: "All Events" }, { key: "expenses", label: "Expenses" }].map(t => (
           <button key={t.key} className={`btn btn-sm ${activeTab === t.key ? "btn-primary" : "btn-outline"}`} onClick={() => setActiveTab(t.key)}>
             {t.label}
           </button>
         ))}
       </div>
 
-      {/* ── TAB CONTENT: DASHBOARD ── */}
       {activeTab === "dashboard" && (
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "2rem" }}>
-          {/* Left: My Venues List & Form */}
           <div>
             <h2 className="section-title">My Venues</h2>
             {venues.map(v => (
@@ -151,7 +140,6 @@ const VendorDashboard = () => {
             ))}
           </div>
 
-          {/* Right: My Events Management */}
           <div>
             <h2 className="section-title">My Event Performance</h2>
             {events.map(ev => {
@@ -164,9 +152,9 @@ const VendorDashboard = () => {
                     <span className="badge badge-info">{ev.category}</span>
                   </div>
                   <div style={{ fontSize: "0.8rem", margin: "10px 0" }}>
-                    <p>📤 Spent: ₹{ev.currentExpenses || 0} / 📥 Earned: ₹{ev.earnedRevenue || 0}</p>
+                    <p>Spent: Rs.{ev.currentExpenses || 0} / Earned: Rs.{ev.earnedRevenue || 0}</p>
                     <div style={{ padding: "5px 10px", borderRadius: "4px", background: inRed ? "#fee2e2" : "#dcfce7", color: inRed ? "#b91c1c" : "#15803d", fontWeight: "bold" }}>
-                      Balance: ₹{balance} {inRed ? "🔴" : "🟢"}
+                      Balance: Rs.{balance} {inRed ? <TrendingDown size={18} strokeWidth={2.5} title="Over Budget" /> : <TrendingUp size={18} strokeWidth={2.5} title="In Profit" />}
                     </div>
                   </div>
                 </div>
@@ -176,10 +164,9 @@ const VendorDashboard = () => {
         </div>
       )}
 
-      {/* ── TAB CONTENT: ALL EVENTS ── */}
       {activeTab === "all-events" && (
         <div>
-          <h2 className="section-title">Global Platform Events</h2>
+          <h2 className="section-title">All Events</h2>
           <div className="grid-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.5rem" }}>
             {allEvents.map(ev => {
               const venue = allVenues.find(v => 
@@ -199,7 +186,6 @@ const VendorDashboard = () => {
                   </div>
 
                   <div style={{ marginTop: "10px", display: "flex", alignItems: "center", gap: "5px" }}>
-                    <span style={{ fontSize: "1.2rem" }}>🏛️</span>
                     <div>
                       <p style={{ margin: 0, fontWeight: "600", color: "var(--gray-800)" }}>
                         {venue ? (venue.name || venue.Name) : "Unknown Venue"}
@@ -212,11 +198,11 @@ const VendorDashboard = () => {
 
                   <div style={{ marginTop: "12px", borderTop: "1px dashed #eee", paddingTop: "10px" }}>
                     <p style={{ fontSize: "0.8rem", color: "var(--gray-600)" }}>
-                      📅 {ev.startDateTime ? new Date(ev.startDateTime).toLocaleDateString() : "Date TBD"}
+                      {ev.startDateTime ? new Date(ev.startDateTime).toLocaleDateString() : "Date TBD"}
                     </p>
                     <div className="flex gap-3" style={{ marginTop: "8px" }}>
-                      <span className="badge badge-gray">Std: ₹{ev.standardPrice || 0}</span>
-                      <span className="badge badge-gray">VIP: ₹{ev.vipPrice || 0}</span>
+                      <span className="badge badge-gray">Std: Rs.{ev.standardPrice || 0}</span>
+                      <span className="badge badge-gray">VIP: Rs.{ev.vipPrice || 0}</span>
                     </div>
                   </div>
                 </div>
@@ -226,7 +212,6 @@ const VendorDashboard = () => {
         </div>
       )}
 
-      {/* ── TAB CONTENT: EXPENSES ── */}
       {activeTab === "expenses" && (
         <div className="card" style={{ maxWidth: "500px", margin: "0 auto", padding: "1.5rem" }}>
           <h2 className="section-title">Track Event Expense</h2>
@@ -244,7 +229,7 @@ const VendorDashboard = () => {
               </select>
             </div>
             <div className="form-group mb-4">
-              <label>Amount (₹)</label>
+              <label>Amount (in Rs.)</label>
               <input 
                 className="form-input" 
                 type="number" 

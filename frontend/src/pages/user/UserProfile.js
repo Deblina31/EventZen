@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { getProfile, uploadProfilePicture } from "../../services/authService";
 import { toast } from "react-toastify";
+import { Camera} from "lucide-react";
 
 const UserProfile = () => {
   const [profile, setProfile] = useState(null);
@@ -34,7 +35,6 @@ const UserProfile = () => {
       <h1 className="page-title">My Profile</h1>
 
       <div className="card">
-        {/* Avatar */}
         <div style={{ textAlign:"center", marginBottom:"1.5rem" }}>
           <div style={{ position:"relative", display:"inline-block" }}>
             {profile.profilePicture ? (
@@ -50,7 +50,7 @@ const UserProfile = () => {
             <label style={{ position:"absolute", bottom:0, right:0, background:"var(--primary)", color:"#fff",
               borderRadius:"50%", width:28, height:28, display:"flex", alignItems:"center",
               justifyContent:"center", cursor:"pointer", fontSize:"0.8rem" }}>
-              {uploading ? "..." : "📷"}
+              {uploading ? "..." : <Camera size={18} />}
               <input type="file" accept="image/*" style={{ display:"none" }} onChange={handleFileChange} />
             </label>
           </div>
@@ -58,7 +58,6 @@ const UserProfile = () => {
           <p className="text-muted" style={{ fontSize:"0.8rem" }}>{profile.role}</p>
         </div>
 
-        {/* Info */}
         <div style={{ display:"grid", gap:"0.75rem", fontSize:"0.875rem" }}>
           {[
             { label:"Email",        value: profile.email },

@@ -32,24 +32,5 @@ namespace VenueService.Repositories
         public async Task Save()
             => await _context.SaveChangesAsync();
 
-        public async Task<List<VenueAvailability>> GetAvailability(int venueId)
-            => await _context.VenueAvailabilities
-                .Where(a => a.VenueId == venueId)
-                .OrderBy(a => a.Date).ThenBy(a => a.StartTime)
-                .ToListAsync();
-
-        public async Task<VenueAvailability?> GetAvailabilitySlot(int slotId)
-            => await _context.VenueAvailabilities
-                .Include(a => a.Venue)
-                .FirstOrDefaultAsync(a => a.Id == slotId);
-
-        public async Task AddAvailability(VenueAvailability slot)
-            => await _context.VenueAvailabilities.AddAsync(slot);
-
-        public async Task DeleteAvailability(int slotId)
-        {
-            var slot = await _context.VenueAvailabilities.FindAsync(slotId);
-            if (slot != null) _context.VenueAvailabilities.Remove(slot);
-        }
     }
 }
