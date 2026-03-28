@@ -33,8 +33,9 @@ export const addExpense = (id, amount) =>
   axios.patch(`${API.EVENTS}/${id}/expenses`, { amount }, { headers: authHeaders() });
 
 
-export const recordTicketSale = (id, amount, ticketType) =>
-  axios.patch(`${API.EVENTS}/${id}/ticket-sale`,
-    { amount, ticketType },
+export const recordTicketSale = (id, totalAmount, ticketType, quantity = 1) =>
+  axios.patch(
+    `${API.EVENTS}/${id}/ticket-sale`,
+    { amount: totalAmount, ticketType, quantity },
     { headers: authHeaders() }
   );

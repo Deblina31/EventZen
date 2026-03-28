@@ -1,198 +1,144 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { getAllEvents, getEventsByCategory } from "../../services/eventService";
 import { getAllVenues } from "../../services/venueService";
 import { createBooking } from "../../services/bookingService";
 import { toast } from "react-toastify";
-import { Ticket, Star, Gem , CreditCard, Smartphone, Banknote, MapPin, Calendar, Users} from "lucide-react";
+import { Ticket, Star, Gem, CreditCard, Smartphone, Banknote, MapPin, Calendar, Users } from "lucide-react";
 
 const CATEGORIES = ["ALL", "SOCIAL", "CORPORATE", "SPORTS", "TECH"];
 
 const TICKET_TYPES = [
-  { key: "STANDARD", label: "Standard",  icon: <Ticket size={20} className="text-blue-500"/>,  desc: "General admission" },
-  { key: "VIP",      label: "VIP",       icon: <Star size={20} className="text-amber-500" />,  desc: "Priority seating + perks" },
-  { key: "PREMIUM",  label: "Premium",   icon: <Gem size={20} className="text-purple-500" />,  desc: "Exclusive access + lounge" },
+  { key: "STANDARD", label: "Standard", icon: <Ticket size={20} className="text-blue-500" />, desc: "General admission" },
+  { key: "VIP", label: "VIP", icon: <Star size={20} className="text-amber-500" />, desc: "Priority seating + perks" },
+  { key: "PREMIUM", label: "Premium", icon: <Gem size={20} className="text-purple-500" />, desc: "Exclusive access + lounge" },
 ];
 
 const priceForType = (event, type) => {
   if (type === "STANDARD") return event.standardPrice || 0;
-  if (type === "VIP")      return event.vipPrice      || 0;
-  if (type === "PREMIUM")  return event.premiumPrice  || 0;
+  if (type === "VIP") return event.vipPrice || 0;
+  if (type === "PREMIUM") return event.premiumPrice || 0;
   return 0;
 };
 
-const TicketSelector = ({ event, onSelect, onClose }) => (
-  <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.5)",
-    display:"flex", alignItems:"center", justifyContent:"center", zIndex:1000 }}>
-    <div className="card" style={{ width:440, maxWidth:"95vw", padding:"2rem" }}>
-      <div className="flex items-center justify-between" style={{ marginBottom:"1.25rem" }}>
-        <h3 style={{ fontWeight:600 }}>Select Ticket Type</h3>
-        <button className="btn btn-outline btn-sm" onClick={onClose}>✕</button>
-      </div>
+// --- Sub-Component: Ticket Selector ---
+const TicketSelector = ({ event, onSelect, onClose }) => {
+  const [quantity, setQuantity] = useState(1);
+  const available = event.availableCapacity ?? ((event.capacity || 0) - (event.soldTickets || 0));
 
-      <p style={{ fontSize:"0.875rem", color:"var(--gray-600)", marginBottom:"1rem" }}>
-        {event.name} · {event.availableCapacity ?? (event.capacity - event.soldTickets)} seats left
-      </p>
+  return (
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 }}>
+      <div className="card" style={{ width: 460, maxWidth: "95vw", padding: "2rem" }}>
+        <div className="flex items-center justify-between" style={{ marginBottom: "1.25rem" }}>
+          <h3 style={{ fontWeight: 600 }}>Select Ticket</h3>
+          <button className="btn btn-outline btn-sm" onClick={onClose}>✕</button>
+        </div>
 
-      <div style={{ display:"flex", flexDirection:"column", gap:"0.75rem" }}>
-        {TICKET_TYPES.map(t => {
-          const price = priceForType(event, t.key);
-          return (
-            <button key={t.key} onClick={() => onSelect(t.key, price)}
-              className="btn btn-outline w-full"
-              style={{ justifyContent:"space-between", padding:"1rem",
-                       height:"auto", flexDirection:"row" }}>
-              <div style={{ display:"flex", alignItems:"center", gap:"0.75rem" }}>
-                <span style={{ fontSize:"1.5rem" }}>{t.icon}</span>
-                <div style={{ textAlign:"left" }}>
-                  <p style={{ fontWeight:600, fontSize:"0.9rem" }}>{t.label}</p>
-                  <p style={{ fontSize:"0.75rem", color:"var(--gray-400)" }}>{t.desc}</p>
+        <p style={{ fontSize: "0.875rem", color: "var(--gray-600)", marginBottom: "1rem" }}>
+          {event.name} · {available} seats left
+        </p>
+
+        <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "1.25rem", padding: "0.75rem", background: "var(--gray-50)", borderRadius: 8 }}>
+          <label style={{ fontSize: "0.875rem", fontWeight: 500, color: "var(--gray-600)", flex: 1 }}>Number of Tickets</label>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+            <button type="button" className="btn btn-outline btn-sm" style={{ width: 32, height: 32 }} onClick={() => setQuantity(q => Math.max(1, q - 1))}>−</button>
+            <span style={{ fontWeight: 700, fontSize: "1.1rem", minWidth: 24, textAlign: "center" }}>{quantity}</span>
+            <button type="button" className="btn btn-outline btn-sm" style={{ width: 32, height: 32 }} onClick={() => setQuantity(q => Math.min(available, q + 1))}>+</button>
+          </div>
+        </div>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+          {TICKET_TYPES.map(t => {
+            const price = priceForType(event, t.key);
+            const total = price * quantity;
+            return (
+              <button key={t.key} onClick={() => onSelect(t.key, price, quantity)} className="btn btn-outline w-full" style={{ justifyContent: "space-between", padding: "1rem", height: "auto" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", textAlign: "left" }}>
+                  {t.icon}
+                  <div>
+                    <p style={{ fontWeight: 600, fontSize: "0.9rem" }}>{t.label}</p>
+                    <p style={{ fontSize: "0.75rem", color: "var(--gray-400)" }}>{t.desc}</p>
+                  </div>
                 </div>
-              </div>
-              <span style={{ fontWeight:700, color:"var(--primary)", fontSize:"1rem" }}>
-                {price > 0 ? `Rs.${price.toLocaleString()}` : "Free"}
-              </span>
-            </button>
-          );
-        })}
+                <div style={{ textAlign: "right" }}>
+                  <p style={{ fontWeight: 700, color: "var(--primary)" }}>{price > 0 ? `₹${price.toLocaleString()}` : "Free"}</p>
+                  {quantity > 1 && <p style={{ fontSize: "0.7rem", color: "var(--gray-400)" }}>Total: ₹{total.toLocaleString()}</p>}
+                </div>
+              </button>
+            );
+          })}
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
-const PaymentModal = ({ event, ticketType, price, onConfirm, onClose }) => {
-  const [method,  setMethod]  = useState("card");
-  const [paying,  setPaying]  = useState(false);
-  const [form,    setForm]    = useState({ cardNumber:"", expiry:"", cvv:"", upiId:"" });
+// --- Sub-Component: Payment Modal ---
+const PaymentModal = ({ event, ticketType, price, quantity, onConfirm, onClose }) => {
+  const [method, setMethod] = useState("card");
+  const [paying, setPaying] = useState(false);
+  const [form, setForm] = useState({ cardNumber: "", expiry: "", cvv: "", upiId: "" });
 
-  const set = f => e => setForm(p => ({ ...p, [f]: e.target.value }));
-
-  const validate = () => {
-    if (method === "card") {
-      const raw = form.cardNumber.replace(/\s/g,"");
-      if (raw.length < 16)        { toast.error("Enter a valid 16-digit card number"); return false; }
-      if (!/^\d{2}\/\d{2}$/.test(form.expiry)) { toast.error("Expiry must be MM/YY");  return false; }
-      if (form.cvv.length < 3)    { toast.error("CVV must be 3 digits");                return false; }
-    }
-    if (method === "upi" && !form.upiId.includes("@")) {
-      toast.error("Enter a valid UPI ID like name@upi"); return false;
-    }
-    return true;
-  };
+  const totalPrice = price * quantity;
 
   const handlePay = async () => {
-    if (!validate()) return;
     setPaying(true);
-    await new Promise(r => setTimeout(r, 1800));
+    await new Promise(r => setTimeout(r, 1500)); // Simulate bank delay
     setPaying(false);
     onConfirm();
   };
 
   return (
-    <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.5)",
-      display:"flex", alignItems:"center", justifyContent:"center", zIndex:1001 }}>
-      <div className="card" style={{ width:440, maxWidth:"95vw", padding:"2rem" }}>
-
-        <div className="flex items-center justify-between" style={{ marginBottom:"1.25rem" }}>
-          <h3 style={{ fontWeight:600 }}>Payment</h3>
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1001 }}>
+      <div className="card" style={{ width: 440, maxWidth: "95vw", padding: "2rem" }}>
+        <div className="flex items-center justify-between" style={{ marginBottom: "1.25rem" }}>
+          <h3 style={{ fontWeight: 600 }}>Checkout</h3>
           <button className="btn btn-outline btn-sm" onClick={onClose}>✕</button>
         </div>
 
-        <div style={{ background:"var(--gray-50)", borderRadius:8,
-          padding:"1rem", marginBottom:"1.25rem", fontSize:"0.875rem" }}>
-          <p style={{ fontWeight:600, marginBottom:"0.25rem" }}>{event.name}</p>
-          <p className="text-muted">
-            {TICKET_TYPES.find(t => t.key === ticketType)?.icon} {ticketType} ticket
-          </p>
-          <div style={{ display:"flex", justifyContent:"space-between",
-            marginTop:"0.5rem", fontWeight:700, color:"var(--primary)" }}>
-            <span>Total</span>
-            <span>{price > 0 ? `Rs${price.toLocaleString()}` : "Free"}</span>
+        <div style={{ background: "var(--gray-50)", borderRadius: 8, padding: "1rem", marginBottom: "1.25rem" }}>
+          <p style={{ fontWeight: 600, fontSize: "0.9rem" }}>{event.name}</p>
+          <p style={{ fontSize: "0.8rem", color: "var(--gray-500)" }}>{ticketType} Ticket × {quantity}</p>
+          <div style={{ display: "flex", justifyContent: "space-between", marginTop: "0.5rem", fontWeight: 700, borderTop: "1px solid #ddd", paddingTop: "0.5rem" }}>
+            <span>Total Amount</span>
+            <span>₹{totalPrice.toLocaleString()}</span>
           </div>
         </div>
 
-        <div style={{ display:"flex", gap:"0.5rem", marginBottom:"1.25rem" }}>
-          {[
-            { key:"card", label:"Card" ,icon: <CreditCard size={18} className="text-blue-600" />},
-            { key:"upi",  label:"UPI",icon: <Smartphone size={18} className="text-purple-600" />  },
-            { key:"cash", label:"Cash" , icon: <Banknote size={18} className="text-green-600" />},
-          ].map(m => (
-            <button key={m.key}
-              className={`btn btn-sm ${method===m.key?"btn-primary":"btn-outline"}`}
-              onClick={() => setMethod(m.key)}>{m.label}
-            </button>
+        <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1.25rem" }}>
+          {["card", "upi", "cash"].map(m => (
+            <button key={m} className={`btn btn-sm ${method === m ? "btn-primary" : "btn-outline"}`} onClick={() => setMethod(m)} style={{ flex: 1, textTransform: "capitalize" }}>{m}</button>
           ))}
         </div>
 
         {method === "card" && (
-          <>
-            <div className="form-group">
-              <label className="form-label">Card Number</label>
-              <input className="form-input" placeholder="1234 5678 9012 3456"
-                maxLength={19} value={form.cardNumber}
-                onChange={e => setForm(p => ({ ...p,
-                  cardNumber: e.target.value.replace(/\D/g,"")
-                    .replace(/(.{4})/g,"$1 ").trim().slice(0,19) }))} />
+          <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+            <input className="form-input" placeholder="Card Number" value={form.cardNumber} onChange={e => setForm({ ...form, cardNumber: e.target.value.replace(/\D/g, "").replace(/(.{4})/g, "$1 ").trim() })} maxLength={19} />
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
+              <input className="form-input" placeholder="MM/YY" maxLength={5} />
+              <input className="form-input" type="password" placeholder="CVV" maxLength={3} />
             </div>
-            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"0.75rem" }}>
-              <div className="form-group">
-                <label className="form-label">Expiry (MM/YY)</label>
-                <input className="form-input" placeholder="MM/YY" maxLength={5}
-                  value={form.expiry}
-                  onChange={e => {
-                    let v = e.target.value.replace(/\D/g,"");
-                    if (v.length >= 2) v = v.slice(0,2) + "/" + v.slice(2,4);
-                    setForm(p => ({ ...p, expiry: v }));
-                  }} />
-              </div>
-              <div className="form-group">
-                <label className="form-label">CVV</label>
-                <input className="form-input" placeholder="•••" maxLength={3}
-                  type="password" value={form.cvv} onChange={set("cvv")} />
-              </div>
-            </div>
-          </>
-        )}
-
-        {method === "upi" && (
-          <div className="form-group">
-            <label className="form-label">UPI ID</label>
-            <input className="form-input" placeholder="yourname@upi"
-              value={form.upiId} onChange={set("upiId")} />
           </div>
         )}
 
-        {method === "cash" && (
-          <div style={{ background:"var(--gray-50)", borderRadius:8,
-            padding:"0.875rem", fontSize:"0.875rem", marginBottom:"1rem" }}>
-            <p style={{ fontWeight:600, marginBottom:"0.25rem" }}>Pay at Venue</p>
-            <p className="text-muted">
-              Pay Rs.{price.toLocaleString()} at the venue counter on the event day.
-              Your booking will be confirmed immediately.
-            </p>
-          </div>
-        )}
+        {method === "upi" && <input className="form-input" placeholder="Enter UPI ID (e.g. name@upi)" />}
 
-        <button className="btn btn-primary w-full"
-          onClick={handlePay} disabled={paying}
-          style={{ marginTop:"0.5rem" }}>
-          {paying
-            ? <span>Processing payment...</span>
-            : <span>Pay {price > 0 ? `Rs.${price.toLocaleString()}` : "& Confirm"}</span>
-          }
+        <button className="btn btn-primary w-full" onClick={handlePay} disabled={paying} style={{ marginTop: "1.5rem" }}>
+          {paying ? "Processing Payment..." : `Confirm & Pay ₹${totalPrice.toLocaleString()}`}
         </button>
       </div>
     </div>
   );
 };
 
+// --- Main Dashboard Component ---
 const UserDashboard = () => {
-  const [events,     setEvents]     = useState([]);
-  const [venues,     setVenues]     = useState([]);
-  const [category,   setCategory]   = useState("ALL");
-  const [loading,    setLoading]    = useState(false);
-  const [ticketModal, setTicketModal] = useState(null);          
-  const [payModal,    setPayModal]    = useState(null); 
-  const [processing,  setProcessing]  = useState(false);
+  const [events, setEvents] = useState([]);
+  const [venues, setVenues] = useState([]);
+  const [category, setCategory] = useState("ALL");
+  const [loading, setLoading] = useState(false);
+  const [ticketModal, setTicketModal] = useState(null);
+  const [payModal, setPayModal] = useState(null);
+  const [processing, setProcessing] = useState(false);
 
   useEffect(() => { fetchData(); }, [category]);
 
@@ -203,154 +149,71 @@ const UserDashboard = () => {
         category === "ALL" ? getAllEvents() : getEventsByCategory(category),
         getAllVenues()
       ]);
-      setEvents(Array.isArray(evRes.data) ? evRes.data : []);
-      setVenues(Array.isArray(vnRes.data) ? vnRes.data : []);
-    } catch { toast.error("Failed to load events"); }
-    finally  { setLoading(false); }
+      setEvents(evRes.data || []);
+      setVenues(vnRes.data || []);
+    } catch { toast.error("Failed to load dashboard data"); }
+    finally { setLoading(false); }
   };
 
-  const getVenue = venueId =>
-    venues.find(v => (v.id||v.Id)?.toString() === venueId?.toString());
+  const getVenue = id => venues.find(v => (v.id || v.Id)?.toString() === id?.toString());
 
-  const handleBookClick = event => {
-    const available = event.availableCapacity ??
-      ((event.capacity || 0) - (event.soldTickets || 0));
-    if (available <= 0) { toast.error("This event is fully booked"); return; }
-    setTicketModal(event);
-  };
-
-  const handleTicketSelect = (ticketType, price) => {
-    setPayModal({ event: ticketModal, ticketType, price });
+  const handleTicketSelect = (ticketType, price, quantity) => {
+    setPayModal({ event: ticketModal, ticketType, price, quantity });
     setTicketModal(null);
   };
 
   const handlePaymentConfirm = async () => {
-    const { event, ticketType, price } = payModal;
     setProcessing(true);
     try {
       await createBooking({
-        eventId:    event.id,
-        ticketType,
-        quantity: 1,
-        price,
+        eventId: payModal.event.id,
+        ticketType: payModal.ticketType,
+        quantity: payModal.quantity,
+        price: payModal.price,
         status: "confirmed",
-        paymentStatus:"paid",
+        paymentStatus: "paid"
       });
-
-      toast.success(`Booking confirmed! ${ticketType} ticket for ${event.name}`);
+      toast.success("Booking Successful!");
       setPayModal(null);
-      fetchData(); 
-    } catch (err) {
-      toast.error(err.response?.data?.error || "Booking failed");
-    } finally {
-      setProcessing(false);
-    }
+      fetchData();
+    } catch { toast.error("Booking failed"); }
+    finally { setProcessing(false); }
   };
 
   return (
     <div className="page-wrapper">
-      <div className="flex items-center justify-between"
-        style={{ marginBottom:"1.5rem", flexWrap:"wrap", gap:"0.75rem" }}>
-        <h1 className="page-title" style={{ margin:0 }}>Browse Events</h1>
-        <div style={{ display:"flex", gap:"0.5rem", flexWrap:"wrap" }}>
+      <div className="flex items-center justify-between" style={{ marginBottom: "1.5rem" }}>
+        <h1 className="page-title">Explore Events</h1>
+        <div style={{ display: "flex", gap: "0.5rem" }}>
           {CATEGORIES.map(c => (
-            <button key={c}
-              className={`btn btn-sm ${category===c?"btn-primary":"btn-outline"}`}
-              onClick={() => setCategory(c)}>{c}
-            </button>
+            <button key={c} className={`btn btn-sm ${category === c ? "btn-primary" : "btn-outline"}`} onClick={() => setCategory(c)}>{c}</button>
           ))}
         </div>
       </div>
 
-      {loading && <p className="text-muted">Loading events...</p>}
-      {!loading && events.length === 0 &&
-        <div className="empty-state"><p>No events found for this category.</p></div>}
-
       <div className="grid-2">
         {events.map(event => {
-          const venue     = getVenue(event.venueId);
-          const available = event.availableCapacity ??
-            ((event.capacity||0) - (event.soldTickets||0));
-          const isFull    = available <= 0;
-
+          const venue = getVenue(event.venueId);
+          const available = (event.capacity || 0) - (event.soldTickets || 0);
           return (
             <div className="card" key={event.id}>
-              <div className="flex items-center justify-between"
-                style={{ marginBottom:"0.75rem" }}>
-                <h3 style={{ fontSize:"1rem", fontWeight:600 }}>
-                  {event.name || event.title}
-                </h3>
-                <div style={{ display:"flex", gap:"0.5rem", alignItems:"center" }}>
-                  {event.category &&
-                    <span className="badge badge-info">{event.category}</span>}
-                  {isFull &&
-                    <span className="badge badge-danger">Sold Out</span>}
-                </div>
+              <div className="flex items-center justify-between" style={{ marginBottom: "1rem" }}>
+                <h3 style={{ fontWeight: 600 }}>{event.name}</h3>
+                <span className={`badge ${available > 0 ? 'badge-info' : 'badge-danger'}`}>{available > 0 ? event.category : "Sold Out"}</span>
               </div>
-
-              <p style={{ fontSize:"0.85rem", color:"var(--gray-600)",
-                marginBottom:"0.75rem" }}>
-                {event.description || "No description"}
-              </p>
-              <div style={{ fontSize:"0.8rem", color:"var(--gray-400)",
-                marginBottom:"1rem", display:"flex", flexDirection:"column", gap:"0.3rem" }}>
-                <p><MapPin size={14} className="text-primary" />{venue
-                  ? `${venue.name||venue.Name} — ${venue.city||venue.City||""}`
-                  : "Venue TBD"}</p>
-                <p><Calendar size={14} className="text-primary" />{event.startDateTime
-                  ? new Date(event.startDateTime).toLocaleString()
-                  : "Date TBD"}</p>
-                <p><Users size={14} className="text-primary" />{available} / {event.capacity||0} seats available</p>
+              <div style={{ fontSize: "0.8rem", color: "var(--gray-500)", display: "flex", flexDirection: "column", gap: "0.4rem", marginBottom: "1.25rem" }}>
+                <span className="flex items-center gap-1"><MapPin size={14} /> {venue?.name || "TBD"}</span>
+                <span className="flex items-center gap-1"><Calendar size={14} /> {new Date(event.startDateTime).toLocaleDateString()}</span>
+                <span className="flex items-center gap-1"><Users size={14} /> {available} seats left</span>
               </div>
-
-              <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)",
-                gap:"0.5rem", marginBottom:"1rem" }}>
-                {TICKET_TYPES.map(t => {
-                  const p = priceForType(event, t.key);
-                  return (
-                    <div key={t.key} style={{ textAlign:"center", padding:"0.5rem",
-                      background:"var(--gray-50)", borderRadius:6 }}>
-                      <div style={{ fontSize:"1rem" }}>{t.icon}</div>
-                      <div style={{ fontSize:"0.7rem", color:"var(--gray-400)" }}>
-                        {t.label}
-                      </div>
-                      <div style={{ fontSize:"0.8rem", fontWeight:600,
-                        color:"var(--primary)" }}>
-                        {p > 0 ? `Rs.${p.toLocaleString()}` : "Free"}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              <button
-                className={`btn w-full btn-sm ${isFull?"btn-outline":"btn-primary"}`}
-                onClick={() => handleBookClick(event)}
-                disabled={isFull}>
-                {isFull ? "Sold Out" : "Book Now"}
-              </button>
+              <button className="btn btn-primary w-full btn-sm" onClick={() => setTicketModal(event)} disabled={available <= 0}>Book Now</button>
             </div>
           );
         })}
       </div>
 
-      {ticketModal && (
-        <TicketSelector
-          event={ticketModal}
-          onSelect={handleTicketSelect}
-          onClose={() => setTicketModal(null)}
-        />
-      )}
-
-      {payModal && (
-        <PaymentModal
-          event={payModal.event}
-          ticketType={payModal.ticketType}
-          price={payModal.price}
-          onConfirm={handlePaymentConfirm}
-          onClose={() => { if (!processing) setPayModal(null); }}
-        />
-      )}
+      {ticketModal && <TicketSelector event={ticketModal} onSelect={handleTicketSelect} onClose={() => setTicketModal(null)} />}
+      {payModal && <PaymentModal {...payModal} onConfirm={handlePaymentConfirm} onClose={() => !processing && setPayModal(null)} />}
     </div>
   );
 };

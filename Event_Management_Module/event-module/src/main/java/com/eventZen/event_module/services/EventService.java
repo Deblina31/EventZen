@@ -108,15 +108,21 @@ public class EventService {
     }
 
     @Transactional
-    public EventResponseDTO recordTicketSale(Long eventId, Double amount, String ticketType) {
+    public EventResponseDTO recordTicketSale(Long eventId, Double amount,
+                                             String ticketType, Integer quantity) {
         Event event = eventRepo.findByIdAndIsActiveTrue(eventId)
                 .orElseThrow(() -> new EntityNotFoundException("Event not found"));
 
-        if (event.getSoldTickets() >= event.getCapacity()) {
-            throw new IllegalArgumentException("Event is fully booked");
+        int qty = quantity != null ? quantity : 1;
+
+        if (event.getSoldTickets() + qty > event.getCapacity()) {
+            throw new IllegalArgumentException(
+                    "Not enough capacity. Only " +
+                            (event.getCapacity() - event.getSoldTickets()) + " seats left."
+            );
         }
 
-        event.setSoldTickets(event.getSoldTickets() + 1);
+        event.setSoldTickets(event.getSoldTickets() + qty);      // ADD qty instead of 1
         event.setEarnedRevenue(
                 (event.getEarnedRevenue() != null ? event.getEarnedRevenue() : 0.0) + amount
         );

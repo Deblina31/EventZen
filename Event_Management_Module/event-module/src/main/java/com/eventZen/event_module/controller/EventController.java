@@ -126,8 +126,10 @@ public class EventController {
     public ResponseEntity<EventResponseDTO> recordTicketSale(
             @PathVariable Long id,
             @RequestBody Map<String, Object> body) {
-        Double amount     = Double.valueOf(body.get("amount").toString());
-        String ticketType = body.get("ticketType").toString();
-        return ResponseEntity.ok(eventService.recordTicketSale(id, amount, ticketType));
+        Double  amount     = Double.valueOf(body.get("amount").toString());
+        String  ticketType = body.get("ticketType").toString();
+        Integer quantity   = body.containsKey("quantity")
+                ? Integer.valueOf(body.get("quantity").toString()) : 1;
+        return ResponseEntity.ok(eventService.recordTicketSale(id, amount, ticketType, quantity));
     }
 }
