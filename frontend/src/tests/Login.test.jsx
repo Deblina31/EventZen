@@ -17,14 +17,14 @@ const renderLogin = () => render(
 
 describe('Login Page', () => {
 
-  it('✅ renders login form elements', () => {
+  it('renders login form elements', () => {
     renderLogin();
     expect(screen.getByPlaceholderText(/username/i)).toBeInTheDocument();
     expect(screen.getByPlaceholderText(/password/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /sign in/i })).toBeInTheDocument();
   });
 
-  it('❌ shows validation errors on empty submit', async () => {
+  it('shows validation errors on empty submit', async () => {
     renderLogin();
     fireEvent.click(screen.getByRole('button', { name: /sign in/i }));
 
@@ -33,7 +33,7 @@ describe('Login Page', () => {
     });
   });
 
-  it('✅ calls loginUser on valid submit', async () => {
+  it('calls loginUser on valid submit', async () => {
     authService.loginUser.mockResolvedValue({
       data: {
         token: 'eyJhbGciOiJIUzI1NiJ9.' +
@@ -56,7 +56,7 @@ describe('Login Page', () => {
     });
   });
 
-  it('❌ shows error toast on wrong credentials', async () => {
+  it('shows error toast on wrong credentials', async () => {
     authService.loginUser.mockRejectedValue({
       response: { data: { error: 'Invalid username or password' } }
     });

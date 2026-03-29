@@ -26,17 +26,17 @@ const renderWithAuth = (role, path = '/dashboard') => {
 
 describe('ProtectedRoute', () => {
 
-  it('✅ renders children when role matches', () => {
+  it('renders children when role matches', () => {
     renderWithAuth('VENDOR');
     expect(screen.getByText('Vendor Dashboard')).toBeInTheDocument();
   });
 
-  it('❌ redirects to /login when not authenticated', () => {
+  it('redirects to /login when not authenticated', () => {
     renderWithAuth(null);
     expect(screen.getByText('Login Page')).toBeInTheDocument();
   });
 
-  it('❌ redirects to /unauthorized when wrong role', () => {
+  it('redirects to /unauthorized when wrong role', () => {
     renderWithAuth('USER');
     expect(screen.getByText('Unauthorized')).toBeInTheDocument();
   });
