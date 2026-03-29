@@ -6,7 +6,7 @@ services:
     restart: always
 
   event-management-module:
-    build: ./Event_Management_Module
+    build: ./Event_Management_Module/event-module
     ports:
       - "8001:8001"
     restart: always
