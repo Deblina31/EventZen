@@ -1,26 +1,46 @@
 services:
+  db:
+    image: mysql:8.0
+    container_name: eventmanagerdb
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: eventmanagerdb
+    restart: always
+
   authentication-module:
     build: ./Authentication_Module
     ports:
       - "8000:8000"
+    entrypoint: ["sh", "-c", "sleep 20 && java -jar app.jar"]
+    depends_on:
+      - db
     restart: always
 
   event-management-module:
-    build: ./Event_Management_Module/event-module
+    build: ./Event_Management_Module
     ports:
       - "8001:8001"
+    entrypoint: ["sh", "-c", "sleep 20 && java -jar app.jar"]
+    depends_on:
+      - db
     restart: always
 
   booking-module:
     build: ./Booking_Module
     ports:
       - "3001:3001"
+    depends_on:
+      - db
     restart: always
 
   venue-management-module:
     build: ./Venue_Management_Module
     ports:
       - "5193:5193"
+    depends_on:
+      - db
     restart: always
 
   frontend:
