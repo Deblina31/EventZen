@@ -1,0 +1,223 @@
+{
+  "info": {
+    "name": "EventZen API Tests",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "auth_url",    "value": "http://localhost:8080/api/v1/auth"     },
+    { "key": "event_url",   "value": "http://localhost:8081/api/v1/events"   },
+    { "key": "venue_url",   "value": "http://localhost:5193/api/v1/venues"   },
+    { "key": "booking_url", "value": "http://localhost:3001/api/v1/bookings" },
+    { "key": "token",       "value": ""                                       },
+    { "key": "eventId",     "value": ""                                       },
+    { "key": "venueId",     "value": ""                                       }
+  ],
+  "item": [
+    {
+      "name": "1. Auth",
+      "item": [
+        {
+          "name": "Register",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 200', () => pm.response.to.have.status(200));",
+            "pm.test('Has token', () => { const b = pm.response.json(); pm.expect(b.token).to.be.a('string'); pm.collectionVariables.set('token', b.token); });"
+          ]}}],
+          "request": {
+            "method": "POST", "url": "{{auth_url}}/register",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\"username\":\"testvendor1\",\"email\":\"tv1@test.com\",\"password\":\"pass1234\",\"role\":\"VENDOR\"}" }
+          }
+        },
+        {
+          "name": "Register - Duplicate Username",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 400', () => pm.response.to.have.status(400));"
+          ]}}],
+          "request": {
+            "method": "POST", "url": "{{auth_url}}/register",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\"username\":\"testvendor1\",\"email\":\"other@test.com\",\"password\":\"pass1234\",\"role\":\"VENDOR\"}" }
+          }
+        },
+        {
+          "name": "Login",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 200', () => pm.response.to.have.status(200));",
+            "pm.test('Token returned', () => { const b = pm.response.json(); pm.expect(b.token).to.exist; pm.collectionVariables.set('token', b.token); });"
+          ]}}],
+          "request": {
+            "method": "POST", "url": "{{auth_url}}/login",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\"username\":\"testvendor1\",\"password\":\"pass1234\"}" }
+          }
+        },
+        {
+          "name": "Login - Wrong Password",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 401', () => pm.response.to.have.status(401));"
+          ]}}],
+          "request": {
+            "method": "POST", "url": "{{auth_url}}/login",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\"username\":\"testvendor1\",\"password\":\"wrongpass\"}" }
+          }
+        },
+        {
+          "name": "Login",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 400', () => pm.response.to.have.status(400));"
+          ]}}],
+          "request": {
+            "method": "POST", "url": "{{auth_url}}/login",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\"username\":\"\"}" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Events",
+      "item": [
+        {
+          "name": "Create Event - Valid VENDOR",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 200', () => pm.response.to.have.status(200));",
+            "pm.test('Has id', () => { const b = pm.response.json(); pm.expect(b.id).to.exist; pm.collectionVariables.set('eventId', b.id); });"
+          ]}}],
+          "request": {
+            "method": "POST", "url": "{{event_url}}",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\"name\":\"Tech Summit\",\"startDateTime\":\"2026-12-01T10:00:00\",\"endDateTime\":\"2026-12-01T18:00:00\",\"venueId\":1,\"category\":\"TECH\",\"totalBudget\":100000,\"venueRent\":20000,\"capacity\":200,\"standardPrice\":500,\"vipPrice\":1000,\"premiumPrice\":2000}" }
+          }
+        },
+        {
+          "name": "Create Event - No Token",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 401', () => pm.response.to.have.status(401));"
+          ]}}],
+          "request": {
+            "method": "POST", "url": "{{event_url}}",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\"name\":\"Test\"}" }
+          }
+        },
+        {
+          "name": "Get All Events",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 200', () => pm.response.to.have.status(200));",
+            "pm.test('Returns array', () => pm.expect(pm.response.json()).to.be.an('array'));"
+          ]}}],
+          "request": {
+            "method": "GET", "url": "{{event_url}}",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }]
+          }
+        },
+        {
+          "name": "Get Event by ID",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 200', () => pm.response.to.have.status(200));"
+          ]}}],
+          "request": {
+            "method": "GET", "url": "{{event_url}}/{{eventId}}",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }]
+          }
+        },
+        {
+          "name": "Get Event - Invalid ID",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 404', () => pm.response.to.have.status(404));"
+          ]}}],
+          "request": {
+            "method": "GET", "url": "{{event_url}}/99999",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }]
+          }
+        },
+        {
+          "name": "Delete Event",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 204', () => pm.response.to.have.status(204));"
+          ]}}],
+          "request": {
+            "method": "DELETE", "url": "{{event_url}}/{{eventId}}",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }]
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Venues",
+      "item": [
+        {
+          "name": "Add Venue - Valid VENDOR",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 201', () => pm.response.to.have.status(201));",
+            "pm.test('Has id', () => { const b = pm.response.json(); pm.collectionVariables.set('venueId', b.id); });"
+          ]}}],
+          "request": {
+            "method": "POST", "url": "{{venue_url}}",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\"name\":\"Grand Hall\",\"city\":\"Mumbai\",\"capacity\":300}" }
+          }
+        },
+        {
+          "name": "Add Venue - Missing City",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 400', () => pm.response.to.have.status(400));"
+          ]}}],
+          "request": {
+            "method": "POST", "url": "{{venue_url}}",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\"name\":\"Grand Hall\",\"capacity\":300}" }
+          }
+        },
+        {
+          "name": "Get All Venues",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 200', () => pm.response.to.have.status(200));"
+          ]}}],
+          "request": {
+            "method": "GET", "url": "{{venue_url}}",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }]
+          }
+        },
+        {
+          "name": "Delete Venue - Not Owner",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 403', () => pm.response.to.have.status(403));"
+          ]}}],
+          "request": {
+            "method": "DELETE", "url": "{{venue_url}}/{{venueId}}",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }]
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Bookings",
+      "item": [
+        {
+          "name": "Create Booking",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 201', () => pm.response.to.have.status(201));",
+            "pm.test('Status confirmed', () => pm.expect(pm.response.json().status).to.equal('confirmed'));"
+          ]}}],
+          "request": {
+            "method": "POST", "url": "{{booking_url}}",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\"eventId\":1,\"ticketType\":\"STANDARD\",\"quantity\":2,\"price\":500}" }
+          }
+        },
+        {
+          "name": "Get My Bookings",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 200', () => pm.response.to.have.status(200));"
+          ]}}],
+          "request": {
+            "method": "GET", "url": "{{booking_url}}",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }]
+          }
+        }
+      ]
+    }
+  ]
+}
