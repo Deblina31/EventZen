@@ -1,4 +1,5 @@
 services:
+
   db:
     image: mysql:8.0
     container_name: eventmanagerdb
@@ -8,40 +9,74 @@ services:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: eventmanagerdb
     restart: always
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - eventzen-network
 
   authentication-module:
     build: ./Authentication_Module
     ports:
-      - "8000:8000"
-    entrypoint: ["sh", "-c", "sleep 20 && java -jar app.jar"]
+      - "8080:8080"        
+    environment:
+      DB_URL: jdbc:mysql://db:3306/eventmanagerdb   
+      DB_USERNAME: root
+      DB_PASSWORD: root
     depends_on:
-      - db
+      db:
+        condition: service_healthy   
     restart: always
+    networks:
+      - eventzen-network
 
   event-management-module:
     build: ./Event_Management_Module
     ports:
-      - "8001:8001"
-    entrypoint: ["sh", "-c", "sleep 20 && java -jar app.jar"]
+      - "8081:8081"        
+    environment:
+      DB_URL: jdbc:mysql://db:3306/eventmanagerdb
+      DB_USERNAME: root
+      DB_PASSWORD: root
+      SERVER_PORT: 8081
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     restart: always
-
-  booking-module:
-    build: ./Booking_Module
-    ports:
-      - "3001:3001"
-    depends_on:
-      - db
-    restart: always
+    networks:
+      - eventzen-network
 
   venue-management-module:
     build: ./Venue_Management_Module
     ports:
       - "5193:5193"
+    environment:
+      ConnectionStrings__DefaultConnection: "server=db;database=eventmanagerdb;user=root;password=root"
+      ASPNETCORE_URLS: http://+:5193
     depends_on:
-      - db
+      db:
+        condition: service_healthy   
     restart: always
+    networks:
+      - eventzen-network
+
+  booking-module:
+    build: ./Booking_Module
+    ports:
+      - "3001:3001"
+    environment:
+      DB_HOST: db               
+      DB_NAME: eventmanagerdb
+      DB_USER: root
+      DB_PASS: root
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: always
+    networks:
+      - eventzen-network
 
   frontend:
     build: ./frontend
@@ -52,4 +87,12 @@ services:
     depends_on:
       - authentication-module
       - event-management-module
+      - venue-management-module
+      - booking-module
     restart: always
+    networks:
+      - eventzen-network
+
+networks:
+  eventzen-network:
+    driver: bridge

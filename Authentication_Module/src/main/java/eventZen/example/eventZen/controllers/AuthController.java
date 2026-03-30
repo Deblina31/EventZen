@@ -73,8 +73,6 @@ public class AuthController {
             Long   userId = jwtUtils.getUserIdFromToken(token);
             User   user   = userRepository.findById(userId)
                     .orElseThrow(() -> new RuntimeException("User not found"));
-
-            // validate size — max 1MB before base64
             if (file.getSize() > 1024 * 1024)
                 return ResponseEntity.badRequest()
                         .body(Map.of("error", "Image must be under 1MB"));

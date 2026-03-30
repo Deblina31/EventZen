@@ -26,7 +26,6 @@ public class EventController {
 
     private final EventService eventService;
 
-
     private Long extractUserId(HttpServletRequest request) {
         Object attr = request.getAttribute("userId");
         return attr != null ? Long.valueOf(attr.toString()) : null;
